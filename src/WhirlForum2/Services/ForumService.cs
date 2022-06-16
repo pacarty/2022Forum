@@ -1,0 +1,539 @@
+﻿using Microsoft.EntityFrameworkCore;
+using WhirlForum2.Data;
+using WhirlForum2.Entities;
+using WhirlForum2.Models;
+
+namespace WhirlForum2.Services
+{
+    public class ForumService : IForumService
+    {
+        private readonly DataContext _context;
+
+        public ForumService(DataContext context)
+        {
+            _context = context;
+        }
+
+        public async Task SeedDb()
+        {
+            List<Subforum> subforumList = new List<Subforum>()
+            {
+                new Subforum() { Name = "sub1" },
+                new Subforum() { Name = "sub2" }
+            };
+
+            List<Topic> topicList = new List<Topic>()
+            {
+                new Topic() { Name = "topic1", SubforumId = 1 },
+                new Topic() { Name = "topic2", SubforumId = 1 },
+                new Topic() { Name = "topic3", SubforumId = 2 },
+                new Topic() { Name = "topic4", SubforumId = 2 }
+            };
+
+            await _context.Subforums.AddRangeAsync(subforumList);
+            await _context.Topics.AddRangeAsync(topicList);
+            // await _context.Posts.AddRangeAsync(postList);
+            // await _context.Comments.AddRangeAsync(commentList);
+
+            await _context.SaveChangesAsync();
+
+        }
+
+        public async Task<List<SubforumModel>> GetSubforumModels(int postsToDisplay)
+        {
+            List<SubforumModel> subforumModels = new List<SubforumModel>();
+
+            foreach (Subforum subforum in await _context.Subforums.ToListAsync())
+            {
+                List<TopicModel> topicModels = new List<TopicModel>();
+
+                foreach (Topic topic in await _context.Topics.Where(t => t.SubforumId == subforum.Id).ToListAsync())
+                {
+                    List<PostModel> postModels = new List<PostModel>();
+
+                    foreach (Post post in await _context.Posts.Where(p => p.TopicId == topic.Id).Take(postsToDisplay).ToListAsync())
+                    {
+                        postModels.Add(new PostModel
+                        {
+                            Id = post.Id,
+                            Name = post.Name
+                        });
+                    }
+
+                    topicModels.Add(new TopicModel
+                    {
+                        Id = topic.Id,
+                        Name = topic.Name,
+                        PostModels = postModels
+                    });
+                }
+
+                subforumModels.Add(new SubforumModel
+                {
+                    Id = subforum.Id,
+                    Name = subforum.Name,
+                    TopicModels = topicModels
+                });
+            }
+
+            return subforumModels;
+        }
+
+        public async Task<TopicModel> GetTopicModel(int topicId, int pageIndex, int postsOnPage, int commentsToDisplay)
+        {
+            Topic topic = await _context.Topics.FindAsync(topicId);
+            TopicModel topicModel = new TopicModel
+            {
+                Id = topic.Id,
+                Name = topic.Name
+            };
+
+            List<Post> posts = await _context.Posts.Where(p => p.TopicId == topicId)
+                .Skip(postsOnPage * (pageIndex - 1))
+                .Take(postsOnPage)
+                .ToListAsync();
+
+            int totalItems = await _context.Posts.Where(p => p.TopicId == topicId).CountAsync();
+
+            List<PostModel> postModels = new List<PostModel>();
+
+            foreach (Post post in posts)
+            {
+                List<CommentModel> commentModels = new List<CommentModel>();
+
+                foreach(Comment comment in await _context.Comments.Where(c => c.PostId == post.Id).Take(commentsToDisplay).ToListAsync())
+                {
+                    var commentUser = await _context.Users.FindAsync(comment.UserId);
+
+                    var commentUserModel = new UserModel
+                    {
+                        UserId = commentUser.Id,
+                        Username = commentUser.UserName
+                    };
+
+                    commentModels.Add(new CommentModel
+                    {
+                        Id = comment.Id,
+                        Content = comment.Content,
+                        UserModel = commentUserModel
+                    });
+                }
+
+                var postUser = await _context.Users.FindAsync(post.UserId);
+
+                var postUserModel = new UserModel
+                {
+                    UserId = postUser.Id,
+                    Username = postUser.UserName
+                };
+
+                postModels.Add(new PostModel
+                {
+                    Id = post.Id,
+                    Name = post.Name,
+                    CommentModels = commentModels,
+                    UserModel = postUserModel
+                });
+            }
+
+            topicModel.PostModels = postModels;
+
+            topicModel.PaginationInfo = new PaginationInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = postsOnPage,
+                CurrentPage = pageIndex,
+                TotalPages = int.Parse(Math.Ceiling(((decimal)totalItems / postsOnPage)).ToString()),
+                Previous = pageIndex - 1,
+                Next = pageIndex + 1
+            };
+
+            return topicModel;
+        }
+
+        public async Task<PostModel> GetPostModel(int postId, int pageIndex, int commentsOnPage, string? currentUserId)
+        {
+            Post post = await _context.Posts.FindAsync(postId);
+
+            var postUser = await _context.Users.FindAsync(post.UserId);
+
+            var postUserModel = new UserModel
+            {
+                UserId = postUser.Id,
+                Username = postUser.UserName
+            };
+
+            PostModel postModel = new PostModel
+            {
+                Id = post.Id,
+                Name = post.Name,
+                UserModel = postUserModel
+            };
+
+            List<Comment> comments = await _context.Comments.Where(c => c.PostId == postId)
+                .Skip(commentsOnPage * (pageIndex - 1))
+                .Take(commentsOnPage)
+                .ToListAsync();
+
+            // if the count is zero then something must have gone wrong (eg the first comment on a new page was deleted,
+            // and so the comments are trying to be loaded into a non-existant page).
+            // here we will change the pageIndex to 1 so it acts like it is on the first page of the post.
+            // note: i'm simply setting the pageIndex to 1 so that previous and next values are correct and it doesn't confuse things.
+            if (comments.Count == 0)
+            {
+                pageIndex = 1;
+
+                comments = await _context.Comments.Where(c => c.PostId == postId)
+                    .Skip(commentsOnPage * (pageIndex - 1))
+                    .Take(commentsOnPage)
+                    .ToListAsync();
+            }
+
+            int totalItems = await _context.Comments.Where(c => c.PostId == postId).CountAsync();
+
+            List<CommentModel> commentsModel = new List<CommentModel>();
+            
+            foreach (Comment comment in comments)
+            {
+                var commentUser = await _context.Users.FindAsync(comment.UserId);
+                bool isUser = false;
+
+                if (currentUserId == commentUser.Id)
+                {
+                    isUser = true;
+                }
+
+                var commentUserModel = new UserModel
+                {
+                    UserId = commentUser.Id,
+                    Username = commentUser.UserName
+                };
+
+                commentsModel.Add(new CommentModel
+                {
+                    Id = comment.Id,
+                    Content = comment.Content,
+                    UserModel = commentUserModel,
+                    IsUser = isUser
+                });
+            }
+
+            postModel.CommentModels = commentsModel;
+
+            postModel.PaginationInfo = new PaginationInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = commentsOnPage,
+                CurrentPage = pageIndex,
+                TotalPages = int.Parse(Math.Ceiling(((decimal)totalItems / commentsOnPage)).ToString()),
+                Previous = pageIndex - 1,
+                Next = pageIndex + 1
+            };
+
+            postModel.NewCommentModel = new NewCommentModel
+            {
+                PostId = postId,
+                CurrentPage = pageIndex
+            };
+
+            postModel.EditCommentModel = new EditCommentModel
+            {
+                PostId = postId,
+                CurrentPage = pageIndex
+            };
+
+            return postModel;
+        }
+
+        public async Task AddPost(NewPostModel newPostModel)
+        {
+            // post variable declared so we can use post.Id to set new Comment PostId to this variable's Id.
+            // after we call savechangesasync() we are able to use this variables primary key (Id).
+            Post post = new Post
+            {
+                Name = newPostModel.Title,
+                TopicId = newPostModel.TopicId,
+                UserId = newPostModel.UserId
+            };
+
+            await _context.Posts.AddAsync(post);
+            await _context.SaveChangesAsync();
+
+            await _context.Comments.AddAsync(
+                new Comment
+                {
+                    Content = newPostModel.Content,
+                    PostId = post.Id,
+                    UserId = newPostModel.UserId
+                });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddComment(NewCommentModel newCommentModel)
+        {
+            await _context.Comments.AddAsync(
+                new Comment
+                {
+                    PostId = newCommentModel.PostId,
+                    Content = newCommentModel.Content,
+                    UserId = newCommentModel.UserId
+                });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<PostManagementModel> GetPostManagementModel(int pageIndex, int postsOnPage)
+        {
+            List<Post> posts = await _context.Posts
+                .Skip(postsOnPage * (pageIndex - 1))
+                .Take(postsOnPage)
+                .ToListAsync();
+
+            if (posts.Count == 0)
+            {
+                pageIndex = 1;
+
+                posts = await _context.Posts
+                    .Skip(postsOnPage * (pageIndex - 1))
+                    .Take(postsOnPage)
+                    .ToListAsync();
+            }
+
+            int totalItems = await _context.Posts.CountAsync();
+
+            List<PostModel> postModels = new List<PostModel>();
+
+            foreach (Post post in posts)
+            {
+                var postUser = await _context.Users.FindAsync(post.UserId);
+
+                var postUserModel = new UserModel
+                {
+                    UserId = postUser.Id,
+                    Username = postUser.UserName
+                };
+
+                postModels.Add(new PostModel
+                {
+                    Id = post.Id,
+                    Name = post.Name,
+                    UserModel = postUserModel
+                });
+            }
+
+            PostManagementModel postManagementModel = new PostManagementModel
+            {
+                PostModels = postModels
+            };
+
+            postManagementModel.PaginationInfo = new PaginationInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = postsOnPage,
+                CurrentPage = pageIndex,
+                TotalPages = int.Parse(Math.Ceiling(((decimal)totalItems / postsOnPage)).ToString()),
+                Previous = pageIndex - 1,
+                Next = pageIndex + 1
+            };
+
+            postManagementModel.EditPostModel = new EditPostModel
+            {
+                CurrentPage = pageIndex
+            };
+
+            return postManagementModel;
+        }
+
+        public async Task<CommentManagementModel> GetCommentManagementModel(int? postId, int pageIndex, int commentsOnPage)
+        {
+            // need to initialise these for some reason
+            List<Comment> comments = new List<Comment>();
+            int totalItems = 0;
+
+            if (postId == null)
+            {
+                comments = await _context.Comments
+                .Skip(commentsOnPage * (pageIndex - 1))
+                .Take(commentsOnPage)
+                .ToListAsync();
+
+                totalItems = await _context.Comments.CountAsync();
+
+                if (comments.Count == 0)
+                {
+                    pageIndex = 1;
+
+                    comments = await _context.Comments
+                        .Skip(commentsOnPage * (pageIndex - 1))
+                        .Take(commentsOnPage)
+                        .ToListAsync();
+
+                    totalItems = await _context.Comments.CountAsync();
+                }
+            }
+            else
+            {
+                comments = await _context.Comments.Where(c => c.PostId == postId)
+                .Skip(commentsOnPage * (pageIndex - 1))
+                .Take(commentsOnPage)
+                .ToListAsync();
+
+                totalItems = await _context.Comments.Where(c => c.PostId == postId).CountAsync();
+
+                if (comments.Count == 0)
+                {
+                    pageIndex = 1;
+
+                    comments = await _context.Comments.Where(c => c.PostId == postId)
+                        .Skip(commentsOnPage * (pageIndex - 1))
+                        .Take(commentsOnPage)
+                        .ToListAsync();
+
+                    totalItems = await _context.Comments.Where(c => c.PostId == postId).CountAsync();
+                }
+            }
+
+            List<CommentModel> commentModels = new List<CommentModel>();
+
+            foreach (Comment comment in comments)
+            {
+                var commentUser = await _context.Users.FindAsync(comment.UserId);
+
+                var commentUserModel = new UserModel
+                {
+                    UserId = commentUser.Id,
+                    Username = commentUser.UserName
+                };
+
+                var post = await _context.Posts.FindAsync(comment.PostId);
+
+                commentModels.Add(new CommentModel
+                {
+                    Id = comment.Id,
+                    Content = comment.Content,
+                    UserModel = commentUserModel,
+                    PostId = post.Id,
+                    PostName = post.Name
+                });
+            }
+
+            CommentManagementModel commentManagementModel = new CommentManagementModel
+            {
+                CommentModels = commentModels
+            };
+
+            commentManagementModel.PaginationInfo = new PaginationInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = commentsOnPage,
+                CurrentPage = pageIndex,
+                TotalPages = int.Parse(Math.Ceiling(((decimal)totalItems / commentsOnPage)).ToString()),
+                Previous = pageIndex - 1,
+                Next = pageIndex + 1
+            };
+
+            commentManagementModel.EditCommentModel = new EditCommentModel
+            {
+                CurrentPage = pageIndex
+            };
+
+            if (postId != null)
+            {
+                commentManagementModel.EditCommentModel.PostId = (int)postId;
+            }
+            
+
+            return commentManagementModel;
+        }
+
+        public async Task<UserManagementModel> GetUserManagementModel(int pageIndex, int usersOnPage)
+        {
+            List<ApplicationUser> users = await _context.Users
+                .Skip(usersOnPage * (pageIndex - 1))
+                .Take(usersOnPage)
+                .ToListAsync();
+
+            int totalItems = await _context.Users.CountAsync();
+
+            List<UserModel> userModels = new List<UserModel>();
+
+            foreach (ApplicationUser user in users)
+            {
+                userModels.Add(new UserModel
+                {
+                    UserId = user.Id,
+                    Username = user.UserName
+                });
+            }
+
+            UserManagementModel userManagementModel = new UserManagementModel
+            {
+                UserModels = userModels
+            };
+
+            userManagementModel.PaginationInfo = new PaginationInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = usersOnPage,
+                CurrentPage = pageIndex,
+                TotalPages = int.Parse(Math.Ceiling(((decimal)totalItems / usersOnPage)).ToString()),
+                Previous = pageIndex - 1,
+                Next = pageIndex + 1
+            };
+
+            return userManagementModel;
+        }
+
+        public async Task EditComment(EditCommentModel editCommentModel)
+        {
+            Comment comment = await _context.Comments.FindAsync(editCommentModel.CommentId);
+
+            if (comment.UserId != editCommentModel.CurrentUserId)
+            {
+                // Current user is not the same as user who made the original comment (likely due to malicious intent), so do not proceed further
+                return;
+            }
+
+            comment.Content = editCommentModel.Content;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteComment(EditCommentModel editCommentModel)
+        {
+            Comment comment = await _context.Comments.FindAsync(editCommentModel.CommentId);
+
+            if (comment.UserId != editCommentModel.CurrentUserId)
+            {
+                // Current user is not the same as user who made the original comment (likely due to malicious intent), so do not proceed further
+                return;
+            }
+
+            _context.Remove(comment);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteCommentManagement(EditCommentModel editCommentModel)
+        {
+            Comment comment = await _context.Comments.FindAsync(editCommentModel.CommentId);
+
+            _context.Remove(comment);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeletePostManagement(EditPostModel editPostModel)
+        {
+            Post post = await _context.Posts.FindAsync(editPostModel.PostId);
+
+            List<Comment> comments = await _context.Comments.Where(c => c.PostId == post.Id).ToListAsync();
+
+            _context.Remove(post);
+            _context.RemoveRange(comments);
+
+            await _context.SaveChangesAsync();
+        }
+    }
+}

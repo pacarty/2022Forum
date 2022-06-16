@@ -1,0 +1,3 @@
+Use viewmodels in this project.
+
+Entities only do what they need to do (eg no objects of other entities, just Ids). The viewmodels/models (either in viewmodels folder or models folder) will hold the values of things getting passed to the view, like lists of other models, count, etc.

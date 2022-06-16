@@ -1,0 +1,19 @@
+﻿@if (Context.User.Identity.IsAuthenticated)
+{
+    <form asp-area="" asp-controller="Account" asp-action="SignOut" method="post" id="logoutForm">
+        <a asp-controller="Manage" asp-action="MyAccount">@Context.User.Identity.Name</a>
+        <a href="javascript:document.getElementById('logoutForm').submit()">Log Out</a>
+    </form>
+}
+else
+{
+    <p>
+        <a asp-controller="Account" asp-action="Register">Register</a>
+        <a asp-controller="Account" asp-action="SignIn">Log In</a>
+    </p>
+}
+<p>
+    <a asp-controller="ContentManagement" asp-action="PostManagement">Post Management</a>
+    <a asp-controller="ContentManagement" asp-action="CommentManagement">Comment Management</a>
+    <a asp-controller="UserManagement" asp-action="Index">User Management</a>
+</p>
