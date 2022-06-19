@@ -16,14 +16,17 @@ namespace WhirlForum2.Controllers
         private IForumService _forumService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAuthorizationService _authorizationService;
 
         public ForumController(IForumService forumService,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            IAuthorizationService authorizationService)
         {
             _forumService = forumService;
             _userManager = userManager;
             _signInManager = signInManager;
+            _authorizationService = authorizationService;
         }
 
         public async Task<IActionResult> Index()
@@ -96,13 +99,23 @@ namespace WhirlForum2.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> EditComment(EditCommentModel editCommentModel, string content)
         {
-            var user = await _userManager.GetUserAsync(User);
-            // if user == null throw error
-
-            editCommentModel.CurrentUserId = user.Id;
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, editCommentModel.UserId, "UserEditDeletePolicy");
+            
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            
             editCommentModel.Content = content;
 
             await _forumService.EditComment(editCommentModel);
@@ -118,13 +131,22 @@ namespace WhirlForum2.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> DeleteComment(EditCommentModel editCommentModel)
         {
-            var user = await _userManager.GetUserAsync(User);
-            // if user == null throw error
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, editCommentModel.UserId, "UserEditDeletePolicy");
 
-            editCommentModel.CurrentUserId = user.Id;
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
 
             await _forumService.DeleteComment(editCommentModel);
 

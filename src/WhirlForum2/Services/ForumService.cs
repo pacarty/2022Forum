@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using WhirlForum2.Data;
 using WhirlForum2.Entities;
 using WhirlForum2.Models;
@@ -8,10 +9,12 @@ namespace WhirlForum2.Services
     public class ForumService : IForumService
     {
         private readonly DataContext _context;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public ForumService(DataContext context)
+        public ForumService(DataContext context, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _roleManager = roleManager;
         }
 
         public async Task SeedDb()
@@ -29,6 +32,9 @@ namespace WhirlForum2.Services
                 new Topic() { Name = "topic3", SubforumId = 2 },
                 new Topic() { Name = "topic4", SubforumId = 2 }
             };
+
+            await _roleManager.CreateAsync(new IdentityRole { Name = "User" });
+            await _roleManager.CreateAsync(new IdentityRole { Name = "Root" });
 
             await _context.Subforums.AddRangeAsync(subforumList);
             await _context.Topics.AddRangeAsync(topicList);
@@ -488,13 +494,6 @@ namespace WhirlForum2.Services
         public async Task EditComment(EditCommentModel editCommentModel)
         {
             Comment comment = await _context.Comments.FindAsync(editCommentModel.CommentId);
-
-            if (comment.UserId != editCommentModel.CurrentUserId)
-            {
-                // Current user is not the same as user who made the original comment (likely due to malicious intent), so do not proceed further
-                return;
-            }
-
             comment.Content = editCommentModel.Content;
 
             await _context.SaveChangesAsync();
@@ -503,13 +502,6 @@ namespace WhirlForum2.Services
         public async Task DeleteComment(EditCommentModel editCommentModel)
         {
             Comment comment = await _context.Comments.FindAsync(editCommentModel.CommentId);
-
-            if (comment.UserId != editCommentModel.CurrentUserId)
-            {
-                // Current user is not the same as user who made the original comment (likely due to malicious intent), so do not proceed further
-                return;
-            }
-
             _context.Remove(comment);
 
             await _context.SaveChangesAsync();

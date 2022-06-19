@@ -31,17 +31,25 @@ namespace WhirlForum2.Controllers
                 var user = new ApplicationUser { UserName = model.Username, City = "Melbourne" };
                 var result = await _userManager.CreateAsync(user, model.Password);
 
-                if (result.Succeeded)
+                if (!result.Succeeded)
                 {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    AddErrors(result);
+                    return View(model);
                 }
 
-                AddErrors(result);
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                result = await _userManager.AddToRoleAsync(user, "User");
+
+                if (!result.Succeeded)
+                {
+                    AddErrors(result);
+                    return View(model);
+                }
 
             }
 
-            return View(model);
+            return RedirectToAction("Index", "Home");
         }
 
         private void AddErrors(IdentityResult result)
@@ -95,6 +103,12 @@ namespace WhirlForum2.Controllers
             await _signInManager.SignOutAsync();
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AccessDenied()
+        {
+            return View();
         }
     }
 }

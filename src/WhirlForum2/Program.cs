@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WhirlForum2.Configuration;
 using WhirlForum2.Data;
 using WhirlForum2.Entities;
+using WhirlForum2.Security;
 using WhirlForum2.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddIdentitySettings();
 builder.Services.AddCookieSettings();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("UserEditDeletePolicy",
+        policy => policy.AddRequirements(new UserRequirement()));
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, UserHandler>();
 
 var app = builder.Build();
 

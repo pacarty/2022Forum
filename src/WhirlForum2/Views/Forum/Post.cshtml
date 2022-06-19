@@ -29,6 +29,7 @@
                     <textarea name="content">@comment.Content</textarea>
                     <input asp-for="EditCommentModel.CommentId" value="@comment.Id" type="hidden" />
                     <input asp-for="EditCommentModel.PostId" type="hidden" />
+                    <input asp-for="EditCommentModel.UserId" value="@comment.UserModel.UserId" type="hidden" />
                     <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
                     <button type="submit">Save</button>
                     <button type="button" onclick="cancelEdit('@comment.Id')">Cancel</button>
@@ -42,17 +43,18 @@
                     <a id="editComment" href="#" onclick="editComment('@comment.Id');return false;">Edit</a>
 
                     <a id="deleteComment" href="#" onclick="deleteComment('@comment.Id');return false;">Delete</a>
-                    
+                }
+
                     <div id="comment_delete_@comment.Id" style="display:none">
                         <form asp-controller="Forum" asp-action="DeleteComment" method="post">
                             <input asp-for="EditCommentModel.CommentId" value="@comment.Id" type="hidden" />
                             <input asp-for="EditCommentModel.PostId" type="hidden" />
+                            <input asp-for="EditCommentModel.UserId" value="@comment.UserModel.UserId" type="hidden" />
                             <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
                             <button type="submit">Yes</button>
                             <button type="button" onclick="cancelDelete('@comment.Id')">No</button>
                         </form>
                     </div>
-                }
         </td>
     </tr>        
 }

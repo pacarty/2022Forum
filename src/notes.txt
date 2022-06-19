@@ -1,3 +1,5 @@
 Use viewmodels in this project.
 
 Entities only do what they need to do (eg no objects of other entities, just Ids). The viewmodels/models (either in viewmodels folder or models folder) will hold the values of things getting passed to the view, like lists of other models, count, etc.
+
+If you register a user, and make a comment and then edit or delete it, we get redirected to access denied. For some reason the EditComment action breakpoint is not hit. However after we log out and log back in the edit/delete works as normal.
