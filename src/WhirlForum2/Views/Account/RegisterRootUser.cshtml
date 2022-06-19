@@ -2,13 +2,8 @@
 
 @model RegisterModel
 
-@{
-    bool rootExists = ViewBag.rootExists;
-}
+<h4>Create Root User account.</h4>
 
-<h4>Create a new account.</h4>
-
-<!--<form asp-controller="Account" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">-->
 <form asp-controller="Account" method="post">
     <div asp-validation-summary="All" class="text-danger"></div>
     <label asp-for="Username"></label>
@@ -21,8 +16,3 @@
     <br /><br />
     <button type="submit">Register</button>
 </form>
-
-@if (!rootExists)
-{
-    <p>There are no registered root users. <a asp-controller="Account" asp-action="RegisterRootUser">Create root account.</a></p>
-}

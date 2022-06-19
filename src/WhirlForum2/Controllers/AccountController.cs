@@ -18,8 +18,19 @@ namespace WhirlForum2.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register()
+        public async Task<IActionResult> Register()
         {
+            ViewBag.rootExists = false;
+
+            foreach (var user in _userManager.Users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "Root"))
+                {
+                    ViewBag.rootExists = true;
+                    break;
+                }
+            }
+
             return View();
         }
 
@@ -37,8 +48,6 @@ namespace WhirlForum2.Controllers
                     return View(model);
                 }
 
-                await _signInManager.SignInAsync(user, isPersistent: false);
-
                 result = await _userManager.AddToRoleAsync(user, "User");
 
                 if (!result.Succeeded)
@@ -47,6 +56,7 @@ namespace WhirlForum2.Controllers
                     return View(model);
                 }
 
+                await _signInManager.SignInAsync(user, isPersistent: false);
             }
 
             return RedirectToAction("Index", "Home");
@@ -109,6 +119,50 @@ namespace WhirlForum2.Controllers
         public async Task<IActionResult> AccessDenied()
         {
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult RegisterRootUser()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RegisterRootUser(RegisterModel model)
+        {
+            // final check to make sure no root users exist
+            foreach (var user in _userManager.Users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "Root"))
+                {
+                    // TODO: error: a root user already exists
+                    return View(model);
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser { UserName = model.Username, City = "Melbourne" };
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (!result.Succeeded)
+                {
+                    AddErrors(result);
+                    return View(model);
+                }
+
+                result = await _userManager.AddToRoleAsync(user, "Root");
+
+                if (!result.Succeeded)
+                {
+                    AddErrors(result);
+                    return View(model);
+                }
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+            }
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }
