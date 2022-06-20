@@ -7,7 +7,7 @@
 <p>@Model.UserId</p>
 <p>@Model.UserName</p>
 
-<h3>Roles: </h3>
+<h3>Roles:</h3>
 
 <form method="post">
 @for (int i = 0; i < Model.Roles.Count; i++)
@@ -18,5 +18,43 @@
     <label asp-for="@Model.Roles[i].IsSelected">@Model.Roles[i].RoleName</label>
 }
 <br /><br />
+<input type="submit" value="Update" />
+</form>
+<br /><br />
+
+<h3>Subforums access:</h3>
+
+<form asp-action="EditUserAccess" method="post">
+<table>
+    <tr>
+        <th>Subforum Id</th>
+        <th>Subforum Name</th>
+        <th>Access</th>
+    </tr>
+
+@for (int i = 0; i < Model.UserSubforumModels.Count; i++)
+{
+    <tr>
+        <td>@Model.UserSubforumModels[i].Id</td>
+        <td>@Model.UserSubforumModels[i].Name</td>
+        <td>
+                <input type="hidden" asp-for="@Model.UserSubforumModels[i].Id" />
+                <input type="hidden" asp-for="@Model.UserSubforumModels[i].Name" />
+                <input asp-for="@Model.UserSubforumModels[i].HasAccess" />
+        </td>
+    </tr>
+}
+</table>
+
+<br /><br />
+<!--
+    We need to create a new hidden input element here because model binding only works if
+    we are using the same HttpPost action name as the HttpGet action name.
+    So because we have to use EditUserAccess action, we need to add in the UserId property value here.
+    Above, with EditUser we don't need to do that because the HttpPost and HttpGet action names
+    are the same, and so the UserId property is automatically binded and taken straight from
+    the EditUserModel that is passed to the view in the HttpGet EditUser action.
+-->
+<input type="hidden" asp-for="UserId" value="@Model.UserId" />
 <input type="submit" value="Update" />
 </form>

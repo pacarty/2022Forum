@@ -40,5 +40,13 @@ namespace WhirlForum2.Controllers
             // return RedirectToAction("EditUser", new { userId = model.UserId });
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> EditUserAccess(EditUserModel model)
+        {
+            await _forumService.EditUserAccess(model);
+
+            return RedirectToAction("Index");
+        }
     }
 }

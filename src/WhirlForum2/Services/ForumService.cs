@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WhirlForum2.Data;
 using WhirlForum2.Entities;
 using WhirlForum2.Models;
@@ -563,6 +564,28 @@ namespace WhirlForum2.Services
                 model.Roles.Add(userRolesModel);
             }
 
+            foreach (Subforum subforum in await _context.Subforums.ToListAsync())
+            {
+                UserSubforumModel userSubforumModel = new UserSubforumModel
+                {
+                    Id = subforum.Id,
+                    Name = subforum.Name
+                };
+
+                var userClaims = await _userManager.GetClaimsAsync(user);
+
+                if (userClaims.Any(c => c.Type == "UserAccess_" + subforum.Id.ToString() && c.Value == "true"))
+                {
+                    userSubforumModel.HasAccess = true;
+                }
+                else
+                {
+                    userSubforumModel.HasAccess = false;
+                }
+
+                model.UserSubforumModels.Add(userSubforumModel);
+            }
+
             return model;
         }
 
@@ -575,6 +598,23 @@ namespace WhirlForum2.Services
 
             result = await _userManager.AddToRolesAsync(user,
                 editUserModel.Roles.Where(x => x.IsSelected).Select(y => y.RoleName));
+        }
+
+        public async Task AddInitialUserClaims(ApplicationUser user)
+        {
+            var result = await _userManager.AddClaimsAsync(user,
+                _context.Subforums.Select(c => new Claim("UserAccess_" + c.Id.ToString(), "true")));
+        }
+
+        public async Task EditUserAccess(EditUserModel editUserModel)
+        {
+            var user = await _userManager.FindByIdAsync(editUserModel.UserId);
+            var claims = await _userManager.GetClaimsAsync(user);
+
+            var result = await _userManager.RemoveClaimsAsync(user, claims);
+
+            result = await _userManager.AddClaimsAsync(user,
+                editUserModel.UserSubforumModels.Select(c => new Claim("UserAccess_" + c.Id.ToString(), c.HasAccess ? "true" : "false")));
         }
     }
 }

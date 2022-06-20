@@ -1,4 +1,5 @@
-﻿using WhirlForum2.Models;
+﻿using WhirlForum2.Entities;
+using WhirlForum2.Models;
 
 namespace WhirlForum2.Services
 {
@@ -19,5 +20,7 @@ namespace WhirlForum2.Services
         Task DeletePostManagement(EditPostModel editPostModel);
         Task<EditUserModel> GetUser(string userId);
         Task EditUser(EditUserModel editUserModel);
+        Task AddInitialUserClaims(ApplicationUser user);
+        Task EditUserAccess(EditUserModel editUserModel);
     }
 }

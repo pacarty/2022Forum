@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WhirlForum2.Entities;
 using WhirlForum2.Models;
+using WhirlForum2.Services;
 
 namespace WhirlForum2.Controllers
 {
@@ -9,12 +10,15 @@ namespace WhirlForum2.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private IForumService _forumService;
 
         public AccountController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            IForumService forumService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _forumService = forumService;
         }
 
         [HttpGet]
@@ -55,6 +59,8 @@ namespace WhirlForum2.Controllers
                     AddErrors(result);
                     return View(model);
                 }
+
+                await _forumService.AddInitialUserClaims(user);
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
             }
@@ -158,6 +164,8 @@ namespace WhirlForum2.Controllers
                     AddErrors(result);
                     return View(model);
                 }
+
+                await _forumService.AddInitialUserClaims(user);
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
             }
