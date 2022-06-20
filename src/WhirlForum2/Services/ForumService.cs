@@ -9,11 +9,15 @@ namespace WhirlForum2.Services
     public class ForumService : IForumService
     {
         private readonly DataContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public ForumService(DataContext context, RoleManager<IdentityRole> roleManager)
+        public ForumService(DataContext context,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _userManager = userManager;
             _roleManager = roleManager;
         }
 
@@ -34,6 +38,7 @@ namespace WhirlForum2.Services
             };
 
             await _roleManager.CreateAsync(new IdentityRole { Name = "User" });
+            await _roleManager.CreateAsync(new IdentityRole { Name = "Admin" });
             await _roleManager.CreateAsync(new IdentityRole { Name = "Root" });
 
             await _context.Subforums.AddRangeAsync(subforumList);
@@ -526,6 +531,50 @@ namespace WhirlForum2.Services
             _context.RemoveRange(comments);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<EditUserModel> GetUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            EditUserModel model = new EditUserModel
+            {
+                UserId = userId,
+                UserName = user.UserName
+            };
+
+            foreach (var role in _roleManager.Roles)
+            {
+                var userRolesModel = new UserRolesModel
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name
+                };
+
+                if (await _userManager.IsInRoleAsync(user, role.Name))
+                {
+                    userRolesModel.IsSelected = true;
+                }
+                else
+                {
+                    userRolesModel.IsSelected = false;
+                }
+
+                model.Roles.Add(userRolesModel);
+            }
+
+            return model;
+        }
+
+        public async Task EditUser(EditUserModel editUserModel)
+        {
+            var user = await _userManager.FindByIdAsync(editUserModel.UserId);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var result = await _userManager.RemoveFromRolesAsync(user, roles);
+
+            result = await _userManager.AddToRolesAsync(user,
+                editUserModel.Roles.Where(x => x.IsSelected).Select(y => y.RoleName));
         }
     }
 }

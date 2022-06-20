@@ -1,0 +1,22 @@
+﻿@using WhirlForum2.Models
+
+@model EditUserModel
+
+<h4>Edit User</h4>
+
+<p>@Model.UserId</p>
+<p>@Model.UserName</p>
+
+<h3>Roles: </h3>
+
+<form method="post">
+@for (int i = 0; i < Model.Roles.Count; i++)
+{
+    <input type="hidden" asp-for="@Model.Roles[i].RoleId" />
+    <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
+    <input asp-for="@Model.Roles[i].IsSelected" />
+    <label asp-for="@Model.Roles[i].IsSelected">@Model.Roles[i].RoleName</label>
+}
+<br /><br />
+<input type="submit" value="Update" />
+</form>

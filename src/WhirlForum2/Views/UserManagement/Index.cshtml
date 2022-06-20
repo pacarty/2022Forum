@@ -15,7 +15,7 @@
     <tr>
         <td>@user.UserId</td>
         <td>@user.Username</td>
-        <td>Action</td>
+        <td><a asp-controller="UserManagement" asp-action="EditUser" asp-route-userId="@user.UserId">Edit</a></td>
     </tr>
 }
 </table>

@@ -15,7 +15,7 @@ else
 <p>
     <a asp-controller="ContentManagement" asp-action="PostManagement">Post Management</a>
     <a asp-controller="ContentManagement" asp-action="CommentManagement">Comment Management</a>
-    @if (User.IsInRole("Root"))
+    @if (User.IsInRole("Root") || User.IsInRole("Admin"))
     {
         <a asp-controller="UserManagement" asp-action="Index">User Management</a>
     }
