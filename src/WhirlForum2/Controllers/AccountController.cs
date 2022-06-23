@@ -157,6 +157,7 @@ namespace WhirlForum2.Controllers
                     return View(model);
                 }
 
+                result = await _userManager.AddToRoleAsync(user, "User");
                 result = await _userManager.AddToRoleAsync(user, "Root");
 
                 if (!result.Succeeded)

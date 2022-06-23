@@ -33,9 +33,9 @@ namespace WhirlForum2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditUser(EditUserModel model)
+        public async Task<IActionResult> EditUserRoles(EditUserModel model)
         {
-            await _forumService.EditUser(model);
+            await _forumService.EditUserRoles(model);
 
             // return RedirectToAction("EditUser", new { userId = model.UserId });
             return RedirectToAction("Index");
@@ -45,6 +45,14 @@ namespace WhirlForum2.Controllers
         public async Task<IActionResult> EditUserAccess(EditUserModel model)
         {
             await _forumService.EditUserAccess(model);
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditUserModeration(EditUserModel model)
+        {
+            await _forumService.EditUserModeration(model);
 
             return RedirectToAction("Index");
         }

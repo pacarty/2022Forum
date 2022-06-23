@@ -566,30 +566,39 @@ namespace WhirlForum2.Services
 
             foreach (Subforum subforum in await _context.Subforums.ToListAsync())
             {
-                UserSubforumModel userSubforumModel = new UserSubforumModel
+                SubforumAccess subforumAccess = new SubforumAccess
                 {
-                    Id = subforum.Id,
-                    Name = subforum.Name
+                    SubforumId = subforum.Id,
+                    SubforumName = subforum.Name
                 };
 
                 var userClaims = await _userManager.GetClaimsAsync(user);
 
                 if (userClaims.Any(c => c.Type == "UserAccess_" + subforum.Id.ToString() && c.Value == "true"))
                 {
-                    userSubforumModel.HasAccess = true;
+                    subforumAccess.UserAccess = true;
                 }
                 else
                 {
-                    userSubforumModel.HasAccess = false;
+                    subforumAccess.UserAccess = false;
                 }
 
-                model.UserSubforumModels.Add(userSubforumModel);
+                if (userClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true"))
+                {
+                    subforumAccess.ModAccess = true;
+                }
+                else
+                {
+                    subforumAccess.ModAccess = false;
+                }
+
+                model.SubforumAccess.Add(subforumAccess);
             }
 
             return model;
         }
 
-        public async Task EditUser(EditUserModel editUserModel)
+        public async Task EditUserRoles(EditUserModel editUserModel)
         {
             var user = await _userManager.FindByIdAsync(editUserModel.UserId);
             var roles = await _userManager.GetRolesAsync(user);
@@ -611,10 +620,21 @@ namespace WhirlForum2.Services
             var user = await _userManager.FindByIdAsync(editUserModel.UserId);
             var claims = await _userManager.GetClaimsAsync(user);
 
-            var result = await _userManager.RemoveClaimsAsync(user, claims);
+            var result = await _userManager.RemoveClaimsAsync(user, claims.Where(c => c.Type.Substring(0, 11) == "UserAccess_"));
 
             result = await _userManager.AddClaimsAsync(user,
-                editUserModel.UserSubforumModels.Select(c => new Claim("UserAccess_" + c.Id.ToString(), c.HasAccess ? "true" : "false")));
+                editUserModel.SubforumAccess.Select(c => new Claim("UserAccess_" + c.SubforumId.ToString(), c.UserAccess ? "true" : "false")));
+        }
+
+        public async Task EditUserModeration(EditUserModel editUserModel)
+        {
+            var user = await _userManager.FindByIdAsync(editUserModel.UserId);
+            var claims = await _userManager.GetClaimsAsync(user);
+
+            var result = await _userManager.RemoveClaimsAsync(user, claims.Where(c => c.Type.Substring(0, 10) == "ModAccess_"));
+
+            result = await _userManager.AddClaimsAsync(user,
+                editUserModel.SubforumAccess.Select(c => new Claim("ModAccess_" + c.SubforumId.ToString(), c.ModAccess ? "true" : "false")));
         }
     }
 }
