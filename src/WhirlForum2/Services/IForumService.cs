@@ -13,7 +13,7 @@ namespace WhirlForum2.Services
         Task AddComment(NewCommentModel newCommentModel);
         Task<PostManagementModel> GetPostManagementModel(int pageIndex, int postsOnPage);
         Task<CommentManagementModel> GetCommentManagementModel(int? postId, int pageIndex, int commentsOnPage);
-        Task<UserManagementModel> GetUserManagementModel(int pageIndex, int usersOnPage);
+        Task<UserManagementModel> GetUserManagementModel(int pageIndex, int usersOnPage, ApplicationUser currentUser);
         Task EditComment(EditCommentModel editCommentModel);
         Task DeleteComment(EditCommentModel editCommentModel);
         Task DeleteCommentManagement(EditCommentModel editCommentModel);

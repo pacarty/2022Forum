@@ -39,6 +39,7 @@ namespace WhirlForum2.Services
             };
 
             await _roleManager.CreateAsync(new IdentityRole { Name = "User" });
+            await _roleManager.CreateAsync(new IdentityRole { Name = "Moderator" });
             await _roleManager.CreateAsync(new IdentityRole { Name = "Admin" });
             await _roleManager.CreateAsync(new IdentityRole { Name = "Root" });
 
@@ -459,14 +460,76 @@ namespace WhirlForum2.Services
             return commentManagementModel;
         }
 
-        public async Task<UserManagementModel> GetUserManagementModel(int pageIndex, int usersOnPage)
+        private async Task<List<ApplicationUser>> GetUserManagementModel_RootUsers()
         {
-            List<ApplicationUser> users = await _context.Users
+            return await _context.Users.ToListAsync();
+        }
+
+        private async Task<List<ApplicationUser>> GetUserManagementModel_AdminUsers()
+        {
+            var userList = new List<ApplicationUser>();
+
+            var users = await _context.Users.ToListAsync();
+
+            foreach (var user in users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "Root") || await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    continue;
+                }
+                else
+                {
+                    userList.Add(user);
+                }
+            }
+
+            return userList;
+        }
+        
+        private async Task<List<ApplicationUser>> GetUserManagementModel_ModUsers()
+        {
+            var userList = new List<ApplicationUser>();
+
+            var users = await _context.Users.ToListAsync();
+
+            foreach (var user in users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "Root") || await _userManager.IsInRoleAsync(user, "Admin") || await _userManager.IsInRoleAsync(user, "Moderator"))
+                {
+                    continue;
+                }
+                else
+                {
+                    userList.Add(user);
+                }
+            }
+
+            return userList;
+        }
+        
+        public async Task<UserManagementModel> GetUserManagementModel(int pageIndex, int usersOnPage, ApplicationUser currentUser)
+        {
+            List<ApplicationUser> users = new List<ApplicationUser>();
+
+            if (await _userManager.IsInRoleAsync(currentUser, "Root"))
+            {
+                users = await GetUserManagementModel_RootUsers();
+            }
+            else if (await _userManager.IsInRoleAsync(currentUser, "Admin"))
+            {
+                users = await GetUserManagementModel_AdminUsers();
+            }
+            else if (await _userManager.IsInRoleAsync(currentUser, "Moderator"))
+            {
+                users = await GetUserManagementModel_ModUsers();
+            }
+            
+            int totalItems = users.Count();
+
+            users = users
                 .Skip(usersOnPage * (pageIndex - 1))
                 .Take(usersOnPage)
-                .ToListAsync();
-
-            int totalItems = await _context.Users.CountAsync();
+                .ToList();
 
             List<UserModel> userModels = new List<UserModel>();
 

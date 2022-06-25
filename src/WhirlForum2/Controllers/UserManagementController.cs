@@ -7,7 +7,7 @@ using WhirlForum2.Services;
 
 namespace WhirlForum2.Controllers
 {
-    [Authorize(Roles = "Root, Admin")]
+    [Authorize(Roles = "Root, Admin, Moderator")]
     public class UserManagementController : Controller
     {
         private readonly int _usersOnPage = 2;
@@ -23,7 +23,9 @@ namespace WhirlForum2.Controllers
 
         public async Task<IActionResult> Index(int? page)
         {
-            return View(await _forumService.GetUserManagementModel(page ?? 1, _usersOnPage));
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            return View(await _forumService.GetUserManagementModel(page ?? 1, _usersOnPage, currentUser));
         }
 
         [HttpGet]
