@@ -13,12 +13,15 @@ namespace WhirlForum2.Controllers
         private readonly int _usersOnPage = 2;
         private IForumService _forumService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthorizationService _authorizationService;
 
         public UserManagementController(IForumService forumService,
-                                        UserManager<ApplicationUser> userManager)
+                                        UserManager<ApplicationUser> userManager,
+                                        IAuthorizationService authorizationService)
         {
             _forumService = forumService;
             _userManager = userManager;
+            _authorizationService = authorizationService;
         }
 
         public async Task<IActionResult> Index(int? page)
@@ -31,9 +34,12 @@ namespace WhirlForum2.Controllers
         [HttpGet]
         public async Task<IActionResult> EditUser(string userId)
         {
-            return View(await _forumService.GetUser(userId));
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            return View(await _forumService.GetUser(userId, currentUser));
         }
 
+        [Authorize(Roles = "Root, Admin")]
         [HttpPost]
         public async Task<IActionResult> EditUserRoles(EditUserModel model)
         {
@@ -46,6 +52,26 @@ namespace WhirlForum2.Controllers
         [HttpPost]
         public async Task<IActionResult> EditUserAccess(EditUserModel model)
         {
+            var editUser = await _userManager.FindByIdAsync(model.UserId);
+
+            UserAccesModel userAccessModel = new UserAccesModel();
+            userAccessModel.EditUserRoles = await _userManager.GetRolesAsync(editUser);
+            userAccessModel.SubforumAccess = model.SubforumAccess;
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, userAccessModel, "AccessUserPolicy");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+
             await _forumService.EditUserAccess(model);
 
             return RedirectToAction("Index");

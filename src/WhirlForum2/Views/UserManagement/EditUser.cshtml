@@ -7,79 +7,89 @@
 <p>@Model.UserId</p>
 <p>@Model.UserName</p>
 
-<h3>Roles:</h3>
-
-<form asp-action="EditUserRoles" method="post">
-@for (int i = 0; i < Model.Roles.Count; i++)
+@if (User.IsInRole("Root") || User.IsInRole("Admin"))
 {
-    <input type="hidden" asp-for="@Model.Roles[i].RoleId" />
-    <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
-    <input asp-for="@Model.Roles[i].IsSelected" />
-    <label asp-for="@Model.Roles[i].IsSelected">@Model.Roles[i].RoleName</label>
+    <h3>Roles:</h3>
+
+    <form asp-action="EditUserRoles" method="post">
+        @for (int i = 0; i < Model.Roles.Count; i++)
+        {
+            <input type="hidden" asp-for="@Model.Roles[i].RoleId" />
+            <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
+            <input asp-for="@Model.Roles[i].IsSelected" />
+            <label asp-for="@Model.Roles[i].IsSelected">@Model.Roles[i].RoleName</label>
+        }
+        <br /><br />
+
+        <input type="hidden" asp-for="UserId" value="@Model.UserId" />
+        <input type="submit" value="Update" />
+    </form>
+    <br /><br />
+
+    <h3>Moderator access:</h3>
+
+    <form asp-action="EditUserModeration" method="post">
+        <table>
+            <tr>
+                <th>Subforum Id</th>
+                <th>Subforum Name</th>
+                <th>Mod</th>
+            </tr>
+
+            @for (int i = 0; i < Model.SubforumAccess.Count; i++)
+            {
+                <tr>
+                    <td>@Model.SubforumAccess[i].SubforumId</td>
+                    <td>@Model.SubforumAccess[i].SubforumName</td>
+                    <td>
+                        <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumId" />
+                        <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumName" />
+                        <input asp-for="@Model.SubforumAccess[i].ModAccess" />
+                    </td>
+                </tr>
+            }
+        </table>
+
+        <br /><br />
+
+        <input type="hidden" asp-for="UserId" value="@Model.UserId" />
+        <input type="submit" value="Update" />
+    </form>
 }
-<br /><br />
 
-<input type="hidden" asp-for="UserId" value="@Model.UserId" />
-<input type="submit" value="Update" />
-</form>
-<br /><br />
-
-<h3>Moderator access:</h3>
-
-<form asp-action="EditUserModeration" method="post">
-<table>
-    <tr>
-        <th>Subforum Id</th>
-        <th>Subforum Name</th>
-        <th>Mod</th>
-    </tr>
-
-@for (int i = 0; i < Model.SubforumAccess.Count; i++)
+@if (Model.SubforumAccess.Any())
 {
-    <tr>
-        <td>@Model.SubforumAccess[i].SubforumId</td>
-        <td>@Model.SubforumAccess[i].SubforumName</td>
-        <td>
-                <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumId" />
-                <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumName" />
-                <input asp-for="@Model.SubforumAccess[i].ModAccess" />
-        </td>
-    </tr>
+    <h3>Normal user access:</h3>
+
+    <form asp-action="EditUserAccess" method="post">
+    <table>
+        <tr>
+            <th>Subforum Id</th>
+            <th>Subforum Name</th>
+            <th>Access</th>
+        </tr>
+
+    @for (int i = 0; i < Model.SubforumAccess.Count; i++)
+    {
+        <tr>
+            <td>@Model.SubforumAccess[i].SubforumId</td>
+            <td>@Model.SubforumAccess[i].SubforumName</td>
+            <td>
+                    <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumId" />
+                    <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumName" />
+                    <input asp-for="@Model.SubforumAccess[i].UserAccess" />
+            </td>
+        </tr>
+    }
+    </table>
+
+    <br /><br />
+
+    <input type="hidden" asp-for="UserId" value="@Model.UserId" />
+    <input type="submit" value="Update" />
+    </form>
 }
-</table>
-
-<br /><br />
-
-<input type="hidden" asp-for="UserId" value="@Model.UserId" />
-<input type="submit" value="Update" />
-</form>
-
-<h3>Normal user access:</h3>
-
-<form asp-action="EditUserAccess" method="post">
-<table>
-    <tr>
-        <th>Subforum Id</th>
-        <th>Subforum Name</th>
-        <th>Access</th>
-    </tr>
-
-@for (int i = 0; i < Model.SubforumAccess.Count; i++)
+else
 {
-    <tr>
-        <td>@Model.SubforumAccess[i].SubforumId</td>
-        <td>@Model.SubforumAccess[i].SubforumName</td>
-        <td>
-                <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumId" />
-                <input type="hidden" asp-for="@Model.SubforumAccess[i].SubforumName" />
-                <input asp-for="@Model.SubforumAccess[i].UserAccess" />
-        </td>
-    </tr>
+    <p><strong>You are not a moderator of any subforum.</strong></p>
 }
-</table>
-
-<br /><br />
-
-<input type="hidden" asp-for="UserId" value="@Model.UserId" />
-<input type="submit" value="Update" />
-</form>

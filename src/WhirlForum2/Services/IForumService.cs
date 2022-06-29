@@ -18,7 +18,7 @@ namespace WhirlForum2.Services
         Task DeleteComment(EditCommentModel editCommentModel);
         Task DeleteCommentManagement(EditCommentModel editCommentModel);
         Task DeletePostManagement(EditPostModel editPostModel);
-        Task<EditUserModel> GetUser(string userId);
+        Task<EditUserModel> GetUser(string userId, ApplicationUser currentUser);
         Task EditUserRoles(EditUserModel editUserModel);
         Task AddInitialUserClaims(ApplicationUser user);
         Task EditUserAccess(EditUserModel editUserModel);

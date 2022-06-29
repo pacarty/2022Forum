@@ -28,9 +28,13 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("UserEditDeletePolicy",
         policy => policy.AddRequirements(new UserRequirement()));
+
+    options.AddPolicy("AccessUserPolicy",
+        policy => policy.AddRequirements(new UserAccessRequirement()));
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, UserHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, UserAccessHandler>();
 
 var app = builder.Build();
 

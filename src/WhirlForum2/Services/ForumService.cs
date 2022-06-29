@@ -523,7 +523,7 @@ namespace WhirlForum2.Services
             {
                 users = await GetUserManagementModel_ModUsers();
             }
-            
+
             int totalItems = users.Count();
 
             users = users
@@ -597,9 +597,10 @@ namespace WhirlForum2.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<EditUserModel> GetUser(string userId)
+        public async Task<EditUserModel> GetUser(string userId, ApplicationUser currentUser)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            var userClaims = await _userManager.GetClaimsAsync(user);
 
             EditUserModel model = new EditUserModel
             {
@@ -607,55 +608,66 @@ namespace WhirlForum2.Services
                 UserName = user.UserName
             };
 
-            foreach (var role in _roleManager.Roles)
+            bool isRootOrAdmin = await _userManager.IsInRoleAsync(currentUser, "Root") || await _userManager.IsInRoleAsync(currentUser, "Admin");
+            var currentUserClaims = await _userManager.GetClaimsAsync(currentUser);
+
+            if (isRootOrAdmin)
             {
-                var userRolesModel = new UserRolesModel
+                foreach (var role in _roleManager.Roles)
                 {
-                    RoleId = role.Id,
-                    RoleName = role.Name
-                };
+                    var userRolesModel = new UserRolesModel
+                    {
+                        RoleId = role.Id,
+                        RoleName = role.Name
+                    };
 
-                if (await _userManager.IsInRoleAsync(user, role.Name))
-                {
-                    userRolesModel.IsSelected = true;
-                }
-                else
-                {
-                    userRolesModel.IsSelected = false;
-                }
+                    if (await _userManager.IsInRoleAsync(user, role.Name))
+                    {
+                        userRolesModel.IsSelected = true;
+                    }
+                    else
+                    {
+                        userRolesModel.IsSelected = false;
+                    }
 
-                model.Roles.Add(userRolesModel);
+                    model.Roles.Add(userRolesModel);
+                }
             }
 
             foreach (Subforum subforum in await _context.Subforums.ToListAsync())
             {
-                SubforumAccess subforumAccess = new SubforumAccess
+                if (currentUserClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true") || isRootOrAdmin)
                 {
-                    SubforumId = subforum.Id,
-                    SubforumName = subforum.Name
-                };
+                    SubforumAccess subforumAccess = new SubforumAccess
+                    {
+                        SubforumId = subforum.Id,
+                        SubforumName = subforum.Name
+                    };
+           
 
-                var userClaims = await _userManager.GetClaimsAsync(user);
+                    if (userClaims.Any(c => c.Type == "UserAccess_" + subforum.Id.ToString() && c.Value == "true"))
+                    {
+                        subforumAccess.UserAccess = true;
+                    }
+                    else
+                    {
+                        subforumAccess.UserAccess = false;
+                    }
 
-                if (userClaims.Any(c => c.Type == "UserAccess_" + subforum.Id.ToString() && c.Value == "true"))
-                {
-                    subforumAccess.UserAccess = true;
-                }
-                else
-                {
-                    subforumAccess.UserAccess = false;
-                }
+                    if (isRootOrAdmin)
+                    {
+                        if (userClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true"))
+                        {
+                            subforumAccess.ModAccess = true;
+                        }
+                        else
+                        {
+                            subforumAccess.ModAccess = false;
+                        }
+                    }
 
-                if (userClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true"))
-                {
-                    subforumAccess.ModAccess = true;
+                    model.SubforumAccess.Add(subforumAccess);
                 }
-                else
-                {
-                    subforumAccess.ModAccess = false;
-                }
-
-                model.SubforumAccess.Add(subforumAccess);
             }
 
             return model;
