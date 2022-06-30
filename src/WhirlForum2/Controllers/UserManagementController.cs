@@ -80,6 +80,24 @@ namespace WhirlForum2.Controllers
         [HttpPost]
         public async Task<IActionResult> EditUserModeration(EditUserModel model)
         {
+            var editUser = await _userManager.FindByIdAsync(model.UserId);
+
+            var editUserRoles = await _userManager.GetRolesAsync(editUser);
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, editUserRoles, "AccessModeratorPolicy");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+
             await _forumService.EditUserModeration(model);
 
             return RedirectToAction("Index");

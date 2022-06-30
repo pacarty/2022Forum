@@ -31,10 +31,14 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("AccessUserPolicy",
         policy => policy.AddRequirements(new UserAccessRequirement()));
+
+    options.AddPolicy("AccessModeratorPolicy",
+        policy => policy.AddRequirements(new ModeratorAccessRequirement()));
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, UserHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, UserAccessHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, ModeratorAccessHandler>();
 
 var app = builder.Build();
 
