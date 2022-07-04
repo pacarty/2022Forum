@@ -34,11 +34,15 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("AccessModeratorPolicy",
         policy => policy.AddRequirements(new ModeratorAccessRequirement()));
+
+    options.AddPolicy("AccessRolesPolicy",
+        policy => policy.AddRequirements(new RolesAccessRequirement()));
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, UserHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, UserAccessHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, ModeratorAccessHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, RolesAccessHandler>();
 
 var app = builder.Build();
 

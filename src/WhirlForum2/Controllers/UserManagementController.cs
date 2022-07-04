@@ -43,6 +43,26 @@ namespace WhirlForum2.Controllers
         [HttpPost]
         public async Task<IActionResult> EditUserRoles(EditUserModel model)
         {
+            var editUser = await _userManager.FindByIdAsync(model.UserId);
+
+            RolesAccessModel rolesAccessModel = new RolesAccessModel();
+            rolesAccessModel.EditUserRoles = await _userManager.GetRolesAsync(editUser);
+            rolesAccessModel.RolesToEdit = model.Roles;
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, rolesAccessModel, "AccessRolesPolicy");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+
             await _forumService.EditUserRoles(model);
 
             // return RedirectToAction("EditUser", new { userId = model.UserId });
@@ -81,7 +101,6 @@ namespace WhirlForum2.Controllers
         public async Task<IActionResult> EditUserModeration(EditUserModel model)
         {
             var editUser = await _userManager.FindByIdAsync(model.UserId);
-
             var editUserRoles = await _userManager.GetRolesAsync(editUser);
 
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, editUserRoles, "AccessModeratorPolicy");

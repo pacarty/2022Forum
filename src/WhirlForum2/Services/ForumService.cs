@@ -515,6 +515,7 @@ namespace WhirlForum2.Services
             {
                 users = await GetUserManagementModel_RootUsers();
             }
+            
             else if (await _userManager.IsInRoleAsync(currentUser, "Admin"))
             {
                 users = await GetUserManagementModel_AdminUsers();
@@ -523,7 +524,7 @@ namespace WhirlForum2.Services
             {
                 users = await GetUserManagementModel_ModUsers();
             }
-
+            
             int totalItems = users.Count();
 
             users = users
@@ -608,13 +609,23 @@ namespace WhirlForum2.Services
                 UserName = user.UserName
             };
 
-            bool isRootOrAdmin = await _userManager.IsInRoleAsync(currentUser, "Root") || await _userManager.IsInRoleAsync(currentUser, "Admin");
+            bool isCurrentUserRoot = await _userManager.IsInRoleAsync(currentUser, "Root");
+            bool isCurrentUserRootOrAdmin = await _userManager.IsInRoleAsync(currentUser, "Root") || await _userManager.IsInRoleAsync(currentUser, "Admin");
+            bool isEditUserRootOrAdmin = await _userManager.IsInRoleAsync(user, "Root") || await _userManager.IsInRoleAsync(user, "Admin");
             var currentUserClaims = await _userManager.GetClaimsAsync(currentUser);
 
-            if (isRootOrAdmin)
+            if ((isCurrentUserRootOrAdmin && !isEditUserRootOrAdmin) || isCurrentUserRoot)
             {
                 foreach (var role in _roleManager.Roles)
                 {
+                    if (role.Name == "Root" || role.Name == "Admin")
+                    {
+                        if (!isCurrentUserRoot)
+                        {
+                            continue;
+                        }
+                    }
+
                     var userRolesModel = new UserRolesModel
                     {
                         RoleId = role.Id,
@@ -636,7 +647,7 @@ namespace WhirlForum2.Services
 
             foreach (Subforum subforum in await _context.Subforums.ToListAsync())
             {
-                if (currentUserClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true") || isRootOrAdmin)
+                if (currentUserClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true") || isCurrentUserRootOrAdmin)
                 {
                     SubforumAccess subforumAccess = new SubforumAccess
                     {
@@ -654,7 +665,7 @@ namespace WhirlForum2.Services
                         subforumAccess.UserAccess = false;
                     }
 
-                    if (isRootOrAdmin)
+                    if ((isCurrentUserRootOrAdmin && !isEditUserRootOrAdmin) || isCurrentUserRoot)
                     {
                         if (userClaims.Any(c => c.Type == "ModAccess_" + subforum.Id.ToString() && c.Value == "true"))
                         {
