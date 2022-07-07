@@ -23,5 +23,9 @@ namespace WhirlForum2.Services
         Task AddInitialUserClaims(ApplicationUser user);
         Task EditUserAccess(EditUserModel editUserModel);
         Task EditUserModeration(EditUserModel editUserModel);
+        Task<ApplicationUser> GetCommentUser(int commentId);
+        Task<int> GetCommentSubforumId(int commentId);
+        Task<ApplicationUser> GetPostUser(int postId);
+        Task<int> GetPostSubforumId(int postId);
     }
 }

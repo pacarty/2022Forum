@@ -37,12 +37,16 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("AccessRolesPolicy",
         policy => policy.AddRequirements(new RolesAccessRequirement()));
+
+    options.AddPolicy("PostAndCommentAccessPolicy",
+        policy => policy.AddRequirements(new PostAndCommentAccessRequirement()));
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, UserHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, UserAccessHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, ModeratorAccessHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, RolesAccessHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, PostAndCommentAccessHandler>();
 
 var app = builder.Build();
 

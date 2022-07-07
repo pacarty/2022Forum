@@ -9,6 +9,7 @@
         <th>Id</th>
         <th>Title</th>
         <th>Creator</th>
+        <th>Subforum Id</th>
         <th>Action</th>
     </tr>
 @foreach (var post in Model.PostModels)
@@ -17,6 +18,7 @@
         <td>@post.Id</td>
         <td><a asp-controller="ContentManagement" asp-action="CommentManagement" asp-route-id="@post.Id">@post.Name</a></td>
         <td>@post.UserModel.Username</td>
+        <td>@post.SubforumId</td>
         <td>
             <form asp-controller="ContentManagement" asp-action="DeletePostManagement" method="post">
                             <input asp-for="EditPostModel.PostId" value="@post.Id" type="hidden" />

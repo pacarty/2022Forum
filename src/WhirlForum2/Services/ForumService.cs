@@ -327,11 +327,14 @@ namespace WhirlForum2.Services
                     Username = postUser.UserName
                 };
 
+                var topic = await _context.Topics.FindAsync(post.TopicId); // to get subforum id
+
                 postModels.Add(new PostModel
                 {
                     Id = post.Id,
                     Name = post.Name,
-                    UserModel = postUserModel
+                    UserModel = postUserModel,
+                    SubforumId = topic.SubforumId
                 });
             }
 
@@ -420,6 +423,7 @@ namespace WhirlForum2.Services
                 };
 
                 var post = await _context.Posts.FindAsync(comment.PostId);
+                var topic = await _context.Topics.FindAsync(post.TopicId); // to get subforum id
 
                 commentModels.Add(new CommentModel
                 {
@@ -427,7 +431,8 @@ namespace WhirlForum2.Services
                     Content = comment.Content,
                     UserModel = commentUserModel,
                     PostId = post.Id,
-                    PostName = post.Name
+                    PostName = post.Name,
+                    SubforumId = topic.SubforumId
                 });
             }
 
@@ -721,6 +726,35 @@ namespace WhirlForum2.Services
 
             result = await _userManager.AddClaimsAsync(user,
                 editUserModel.SubforumAccess.Select(c => new Claim("ModAccess_" + c.SubforumId.ToString(), c.ModAccess ? "true" : "false")));
+        }
+
+        public async Task<ApplicationUser> GetCommentUser(int commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
+            return await _context.Users.FindAsync(comment.UserId);
+        }
+
+        public async Task<int> GetCommentSubforumId(int commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
+            var post = await _context.Posts.FindAsync(comment.PostId);
+            var topic = await _context.Topics.FindAsync(post.TopicId);
+
+            return topic.SubforumId;
+        }
+
+        public async Task<ApplicationUser> GetPostUser(int postId)
+        {
+            var post = await _context.Posts.FindAsync(postId);
+            return await _context.Users.FindAsync(post.UserId);
+        }
+
+        public async Task<int> GetPostSubforumId(int postId)
+        {
+            var post = await _context.Posts.FindAsync(postId);
+            var topic = await _context.Topics.FindAsync(post.TopicId);
+
+            return topic.SubforumId;
         }
     }
 }

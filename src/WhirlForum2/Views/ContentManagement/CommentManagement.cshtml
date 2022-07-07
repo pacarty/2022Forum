@@ -11,6 +11,7 @@
         <th>Content</th>
         <th>Post Id</th>
         <th>Post Title</th>
+        <th>Subforum Id</th>
         <th>Action</th>
     </tr>
 @foreach (var comment in Model.CommentModels)
@@ -21,6 +22,7 @@
         <td>@comment.Content</td>
         <td>@comment.PostId</td>
         <td>@comment.PostName</td>
+        <td>@comment.SubforumId</td>
         <td>
             <form asp-controller="ContentManagement" asp-action="DeleteCommentManagement" method="post">
                             <input asp-for="EditCommentModel.CommentId" value="@comment.Id" type="hidden" />

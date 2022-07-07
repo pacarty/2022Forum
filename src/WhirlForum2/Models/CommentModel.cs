@@ -8,5 +8,6 @@
         public int PostId { get; set; }
         public string PostName { get; set; }
         public bool IsUser { get; set; }
+        public int SubforumId { get; set; }
     }
 }

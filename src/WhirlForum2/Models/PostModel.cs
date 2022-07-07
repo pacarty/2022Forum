@@ -9,5 +9,6 @@
         public NewCommentModel NewCommentModel { get; set; }
         public EditCommentModel EditCommentModel { get; set; }
         public UserModel UserModel { get; set; }
+        public int SubforumId { get; set; }
     }
 }
