@@ -1,7 +1,5 @@
 using Core.Data;
 using Core.Entities;
-using Core.Interfaces;
-using Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Web.Configuration;
@@ -11,17 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllersWithViews();
-
-builder.Services.AddTransient<IForumService, ForumService>();
-builder.Services.AddTransient<ISubforumService, SubforumService>();
-builder.Services.AddTransient<ITopicService, TopicService>();
-builder.Services.AddTransient<IPostService, PostService>();
-builder.Services.AddTransient<ICommentService, CommentService>();
-builder.Services.AddTransient<IAuthService, AuthService>();
-builder.Services.AddTransient<IUserManagementService, UserManagementService>();
-builder.Services.AddTransient<IUserManagementService, UserManagementService>();
-builder.Services.AddTransient<IPostManagementService, PostManagementService>();
-builder.Services.AddTransient<ICommentManagementService, CommentManagementService>();
+builder.Services.AddServices();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(connectionString));
