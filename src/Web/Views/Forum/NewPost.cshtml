@@ -1,0 +1,13 @@
+﻿@model Core.Models.NewPostModel
+
+<h1>Create new post</h1>
+
+<form asp-controller="Forum" asp-action="NewPost" method="post">
+    <label asp-for="Title"></label>
+    <input asp-for="Title" />
+    <br /><br />
+    <label asp-for="Content"></label>
+    <textarea asp-for="Content"></textarea>
+    <input asp-for="TopicId" type="hidden" />
+    <button type="submit">Create</button>
+</form>

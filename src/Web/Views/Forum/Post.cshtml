@@ -1,0 +1,60 @@
+﻿@using Core.Models
+
+@model PostModel
+
+<h1>@Model.Post.Name</h1>
+<h2>Created by: @Model.User.UserName</h2>
+
+<table>
+    <tr>
+        <th>User</th>
+        <th>Comment</th>
+        <th>Action</th>
+    </tr>
+@foreach(var comment in Model.CommentModels)
+{
+    <tr>
+        <td>@comment.CommentUser.UserName</td>
+        <td>
+            <div id="comment_show_@comment.Comment.Id" style="display:block">@comment.Comment.Content</div>
+            <div id="comment_edit_@comment.Comment.Id" style="display:none">
+
+                <form asp-controller="Forum" asp-action="EditComment" method="post">
+                    <textarea name="content">@comment.Comment.Content</textarea>
+                    <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
+                    <input asp-for="EditCommentModel.PostId" type="hidden" />
+                    <input asp-for="EditCommentModel.UserId" value="@comment.CommentUser.Id" type="hidden" />
+                    <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="cancelEdit('@comment.Comment.Id')">Cancel</button>
+                </form>
+            </div>
+            
+        </td>
+        <td>
+                @if (comment.DisplayEditDelete)
+                {
+                    <a id="editComment" href="#" onclick="editComment('@comment.Comment.Id');return false;">Edit</a>
+
+                    <a id="deleteComment" href="#" onclick="deleteComment('@comment.Comment.Id');return false;">Delete</a>
+                }
+
+                    <div id="comment_delete_@comment.Comment.Id" style="display:none">
+                        <form asp-controller="Forum" asp-action="DeleteComment" method="post">
+                            <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
+                            <input asp-for="EditCommentModel.PostId" type="hidden" />
+                            <input asp-for="EditCommentModel.UserId" value="@comment.CommentUser.Id" type="hidden" />
+                            <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
+                            <button type="submit">Yes</button>
+                            <button type="button" onclick="cancelDelete('@comment.Comment.Id')">No</button>
+                        </form>
+                    </div>
+        </td>
+    </tr>        
+}
+</table>
+<br />
+
+@Html.Partial("_PostPagination", Model.PaginationInfo)
+<br />
+@Html.Partial("_NewComment", Model.NewCommentModel)

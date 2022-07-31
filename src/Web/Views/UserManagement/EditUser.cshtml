@@ -1,0 +1,37 @@
+﻿@using Core.Entities
+@using System.Security.Claims
+@using Core.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager;
+@inject SignInManager<ApplicationUser> signinManager;
+
+@model EditUserModel
+
+<h4>Edit User</h4>
+
+<p>@Model.User.Id</p>
+<p>@Model.User.UserName</p>
+
+@if (signinManager.IsSignedIn(User))
+{
+    var user = await userManager.GetUserAsync(User);
+
+    @if (user.AuthAccessLevel >= 3)
+    {
+        <h3>Role:</h3>
+
+    <form asp-action="EditUserRoles" method="post">
+        @for (int i = 0; i < Model.Roles.Count; i++)
+        {
+            <input type="radio" asp-for="Role" value="@Model.Roles[i]" />
+            @Model.Roles[i]
+            <br/>   
+        }
+        <br/>
+        <input type="hidden" asp-for="User.Id" value="@Model.User.Id" />
+        <input type="submit" value="Update" />
+
+    </form>
+    <br /><br />
+    }
+}

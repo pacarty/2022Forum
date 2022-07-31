@@ -1,0 +1,24 @@
+﻿@using Core.Models
+
+@model UserManagementModel
+
+<h1>User Management</h1>
+
+<table>
+    <tr>
+        <th>User Id</th>
+        <th>Username</th>
+        <th>Action</th>
+    </tr>
+@foreach (var user in Model.Users)
+{
+    <tr>
+        <td>@user.Id</td>
+        <td>@user.UserName</td>
+        <td><a asp-controller="UserManagement" asp-action="EditUser" asp-route-userId="@user.Id">Edit</a></td>
+    </tr>
+}
+</table>
+<br />
+
+@Html.Partial("_UserManagementPagination", Model.PaginationInfo)

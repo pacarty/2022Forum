@@ -1,0 +1,31 @@
+﻿@using Core.Models
+
+@model List<SubforumModel>
+
+<h1>Forum</h1>
+
+@if (Model.Any())
+{
+    @foreach (var subforum in Model)
+    {
+        <table>
+            <tr>
+                <th>@subforum.Subforum.Name</th>
+                <th></th>
+            </tr>
+            @foreach (var topic in subforum.TopicModels)
+            {
+                <tr>
+                    <td><a asp-controller="Forum" asp-action="Topic" asp-route-id="@topic.Topic.Id">@topic.Topic.Name</a></td>
+                    <td>
+                        @foreach (var post in topic.PostModels)
+                        {
+                            <li><a asp-controller="Forum" asp-action="Post" asp-route-id="@post.Post.Id">@post.Post.Name</a></li>
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+        <br />
+    }
+}

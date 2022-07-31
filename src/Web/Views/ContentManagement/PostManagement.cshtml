@@ -1,0 +1,40 @@
+﻿@using Core.Models
+
+@model PostManagementModel
+
+<h1>Post Management</h1>
+
+<table>
+    <tr>
+        <th>Id</th>
+        <th>Title</th>
+        <th>Creator</th>
+        <th>Action</th>
+    </tr>
+@foreach (var post in Model.PostModels)
+{
+    <tr>
+        <td>@post.Post.Id</td>
+        <td><a asp-controller="ContentManagement" asp-action="CommentManagement" asp-route-id="@post.Post.Id">@post.Post.Name</a></td>
+        <td>@post.User.UserName</td>
+        <td>
+            @if (post.DisplayEditDelete)
+            {
+                <a id="deletePostManagement" href="#" onclick="deletePostManagement('@post.Post.Id');return false;">Delete</a>
+            }
+
+            <div id="post_delete_management_@post.Post.Id" style="display:none">
+                <form asp-controller="ContentManagement" asp-action="DeletePostManagement" method="post">
+                     <input asp-for="EditPostModel.PostId" value="@post.Post.Id" type="hidden" />
+                     <input asp-for="EditPostModel.CurrentPage" type="hidden" />
+                    <button type="submit">Yes</button>
+                    <button type="button" onclick="cancelDeletePostManagement('@post.Post.Id')">No</button>
+                </form>
+            </div>
+        </td>
+    </tr>        
+}
+</table>
+<br />
+
+@Html.Partial("_PostManagementPagination", Model.PaginationInfo)
