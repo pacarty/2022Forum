@@ -37,6 +37,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapDefaultControllerRoute();
+app.MapControllerRoute("default", "{controller=Forum}/{action=Index}/{id?}");
 
 app.Run();

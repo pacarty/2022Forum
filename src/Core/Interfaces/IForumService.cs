@@ -2,6 +2,6 @@
 {
     public interface IForumService
     {
-        Task CheckDb();
+        Task<bool> CheckDb();
     }
 }

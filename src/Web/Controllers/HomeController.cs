@@ -13,8 +13,19 @@ namespace Web.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            await _forumService.CheckDb();
             return View();
+        }
+
+        public async Task<string> Seed()
+        {
+            if (await _forumService.CheckDb())
+            {
+                return "Database seeded";
+            }
+            else
+            {
+                return "Db already seeded";
+            } 
         }
     }
 }
