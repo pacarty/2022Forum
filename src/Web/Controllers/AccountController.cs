@@ -42,16 +42,16 @@ namespace Web.Controllers
 
                 var result = await _userManager.CreateAsync(user, model.Password);
 
-                if (!result.Succeeded)
+                if (result.Succeeded)
                 {
-                    AddErrors(result);
-                    return View(model);
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Home");
                 }
 
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                AddErrors(result);
             }
 
-            return RedirectToAction("Index", "Home");
+            return View(model);
         }
 
         private void AddErrors(IdentityResult result)
@@ -138,16 +138,17 @@ namespace Web.Controllers
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
-                if (!result.Succeeded)
+
+                if (result.Succeeded)
                 {
-                    AddErrors(result);
-                    return View(model);
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Home");
                 }
 
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                AddErrors(result);
             }
 
-            return RedirectToAction("Index", "Home");
+            return View(model);
         }
     }
 }

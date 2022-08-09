@@ -3,7 +3,7 @@
 @model RegisterModel
 
 @{
-    bool rootExists = ViewBag.rootExists;
+    bool rootExists = ViewBag.rootExists ?? true;
 }
 
 <h4>Create a new account.</h4>
@@ -12,12 +12,20 @@
     <div asp-validation-summary="All" class="text-danger"></div>
     <label asp-for="Username"></label>
     <input asp-for="Username" />
+    <span asp-validation-for="Username" class="text-danger"></span>
 
     <br /><br />
 
     <label asp-for="Password"></label>
     <input asp-for="Password" />
+    <span asp-validation-for="Password" class="text-danger"></span>
     <br /><br />
+
+    <label asp-for="ConfirmPassword"></label>
+    <input asp-for="ConfirmPassword" />
+    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+    <br /><br />
+
     <button type="submit">Register</button>
 </form>
 
