@@ -62,8 +62,23 @@ namespace Web.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult NewPost(int id)
+        public async Task<IActionResult> NewPost(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var authResult = await _authService.CanCreateNewPostOrComment(currentUser);
+
+            if (!authResult)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+
             return View(new NewPostModel { TopicId = id });
         }
 
@@ -71,12 +86,29 @@ namespace Web.Controllers
         [Authorize]
         public async Task<IActionResult> NewPost(NewPostModel newPostModel)
         {
-            // var user = await _userManager.GetUserAsync(User);
-            // if user == null throw error
+            var currentUser = await _userManager.GetUserAsync(User);
+            var authResult = await _authService.CanCreateNewPostOrComment(currentUser);
 
-            newPostModel.UserId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            if (!authResult)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
 
-            await _postService.AddPost(newPostModel);
+            if (ModelState.IsValid)
+            {
+                await _postService.AddPost(newPostModel, currentUser);
+            }
+            else
+            {
+                return View(newPostModel);
+            }
 
             return RedirectToAction("Topic", "Forum", new { id = newPostModel.TopicId });
         }
@@ -85,12 +117,29 @@ namespace Web.Controllers
         [Authorize]
         public async Task<IActionResult> NewComment(NewCommentModel newCommentModel)
         {
-            // var user = await _userManager.GetUserAsync(User);
-            // if user == null throw error
+            var currentUser = await _userManager.GetUserAsync(User);
+            var authResult = await _authService.CanCreateNewPostOrComment(currentUser);
 
-            newCommentModel.UserId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            if (!authResult)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
 
-            await _commentService.AddComment(newCommentModel);
+            if (ModelState.IsValid)
+            {
+                await _commentService.AddComment(newCommentModel, currentUser);
+            }
+            else
+            {
+                // error: content is empty
+            }
 
             if (newCommentModel.CurrentPage == 1)
             {
@@ -121,9 +170,15 @@ namespace Web.Controllers
                 }
             }
 
-            editCommentModel.Content = content;
-
-            await _commentService.EditComment(editCommentModel);
+            if (content != null)
+            {
+                editCommentModel.Content = content;
+                await _commentService.EditComment(editCommentModel);
+            }
+            else
+            {
+                // error: content is empty
+            }
 
             if (editCommentModel.CurrentPage == 1)
             {

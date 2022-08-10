@@ -134,5 +134,10 @@ namespace Core.Services
 
             return false;
         }
+
+        public async Task<bool> CanCreateNewPostOrComment(ApplicationUser currentUser)
+        {
+            return currentUser.AuthAccessLevel > 0;
+        }
     }
 }

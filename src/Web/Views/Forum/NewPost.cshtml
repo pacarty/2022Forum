@@ -5,9 +5,11 @@
 <form asp-controller="Forum" asp-action="NewPost" method="post">
     <label asp-for="Title"></label>
     <input asp-for="Title" />
+    <span asp-validation-for="Title" class="text-danger"></span>
     <br /><br />
     <label asp-for="Content"></label>
     <textarea asp-for="Content"></textarea>
+    <span asp-validation-for="Content" class="text-danger"></span>
     <input asp-for="TopicId" type="hidden" />
     <button type="submit">Create</button>
 </form>

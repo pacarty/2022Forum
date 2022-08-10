@@ -1,4 +1,8 @@
-﻿@using Core.Models
+﻿@using Core.Entities
+@using Core.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager;
+@inject SignInManager<ApplicationUser> signinManager;
 
 @model PostModel
 
@@ -57,4 +61,13 @@
 
 @Html.Partial("_PostPagination", Model.PaginationInfo)
 <br />
-@Html.Partial("_NewComment", Model.NewCommentModel)
+
+@if (signinManager.IsSignedIn(User))
+{
+    var user = await userManager.GetUserAsync(User);
+
+    @if (user.AuthAccessLevel > 0)
+    {
+        @Html.Partial("_NewComment", Model.NewCommentModel)
+    }
+}

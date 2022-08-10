@@ -14,14 +14,14 @@ namespace Core.Services
             _context = context;
         }
 
-        public async Task AddComment(NewCommentModel newCommentModel)
+        public async Task AddComment(NewCommentModel newCommentModel, ApplicationUser currentUser)
         {
             await _context.Comments.AddAsync(
                 new Comment
                 {
                     PostId = newCommentModel.PostId,
                     Content = newCommentModel.Content,
-                    UserId = newCommentModel.UserId
+                    UserId = currentUser.Id
                 });
 
             await _context.SaveChangesAsync();

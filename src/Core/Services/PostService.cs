@@ -95,7 +95,7 @@ namespace Core.Services
             return postModel;
         }
 
-        public async Task AddPost(NewPostModel newPostModel)
+        public async Task AddPost(NewPostModel newPostModel, ApplicationUser currentUser)
         {
             // post variable declared so we can use post.Id to set new Comment PostId to this variable's Id.
             // after we call savechangesasync() we are able to use this variables primary key (Id).
@@ -103,7 +103,7 @@ namespace Core.Services
             {
                 Name = newPostModel.Title,
                 TopicId = newPostModel.TopicId,
-                UserId = newPostModel.UserId
+                UserId = currentUser.Id
             };
 
             await _context.Posts.AddAsync(post);
@@ -114,7 +114,7 @@ namespace Core.Services
                 {
                     Content = newPostModel.Content,
                     PostId = post.Id,
-                    UserId = newPostModel.UserId
+                    UserId = currentUser.Id
                 });
 
             await _context.SaveChangesAsync();

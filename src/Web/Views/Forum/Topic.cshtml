@@ -1,4 +1,8 @@
-﻿@using Core.Models
+﻿@using Core.Entities
+@using Core.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager;
+@inject SignInManager<ApplicationUser> signinManager;
 
 @model TopicModel
 
@@ -21,4 +25,12 @@
 
 @Html.Partial("_TopicPagination", Model.PaginationInfo)
 
-<p><a asp-controller="Forum" asp-action="NewPost" asp-route-id="@Model.Topic.Id">New Post</a></p>
+@if (signinManager.IsSignedIn(User))
+{
+    var user = await userManager.GetUserAsync(User);
+
+    @if (user.AuthAccessLevel > 0)
+    {
+        <p><a asp-controller="Forum" asp-action="NewPost" asp-route-id="@Model.Topic.Id">New Post</a></p>
+    }
+}
