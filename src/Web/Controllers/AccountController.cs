@@ -45,7 +45,7 @@ namespace Web.Controllers
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Forum");
                 }
 
                 AddErrors(result);
@@ -90,7 +90,7 @@ namespace Web.Controllers
                 }
                 else
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Forum");
                 }
             }
 
@@ -104,7 +104,7 @@ namespace Web.Controllers
         {
             await _signInManager.SignOutAsync();
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Forum");
         }
 
         [HttpGet]
@@ -142,7 +142,7 @@ namespace Web.Controllers
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Forum");
                 }
 
                 AddErrors(result);

@@ -8,24 +8,33 @@
 {
     var user = await userManager.GetUserAsync(User);
 
-    @if (user.AuthAccessLevel >= 2)
-    {
-        <p>
-            <a asp-controller="UserManagement" asp-action="Index">User Management</a>
-            <a asp-controller="ContentManagement" asp-action="PostManagement">Post Management</a>
-            <a asp-controller="ContentManagement" asp-action="CommentManagement">Comment Management</a>
-        </p>
-    }
+    
 
     <form asp-area="" asp-controller="Account" asp-action="SignOut" method="post" id="logoutForm">
-        <a asp-controller="Manage" asp-action="MyAccount">@user.UserName</a>
-        <a href="javascript:document.getElementById('logoutForm').submit()">Log Out</a>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a asp-controller="Manage" asp-action="MyAccount">@user.UserName</a></li>
+
+            @if (user.AuthAccessLevel >= 2)
+            {
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" a href="#">Management
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <li><a asp-controller="UserManagement" asp-action="Index">User Management</a></li>
+                      <li><a asp-controller="ContentManagement" asp-action="PostManagement">Post Management</a></li>
+                      <li><a asp-controller="ContentManagement" asp-action="CommentManagement">Comment Management</a></li>
+                    </ul>
+                  </li>
+            
+            }
+            <li><a href="javascript:document.getElementById('logoutForm').submit()">Log Out</a></li>
+        </ul>
     </form>
 }
 else
 {
-    <p>
-        <a asp-controller="Account" asp-action="Register">Register</a>
-        <a asp-controller="Account" asp-action="SignIn">Log In</a>
-    </p>
+    <ul class="nav navbar-nav navbar-right">
+        <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+        <li><a asp-controller="Account" asp-action="SignIn">Log In</a></li>
+    </ul>
 }

@@ -16,16 +16,18 @@ namespace Web.Controllers
             return View();
         }
 
-        public async Task<string> Seed()
+        public async Task<IActionResult> Seed()
         {
             if (await _forumService.CheckDb())
             {
-                return "Database seeded";
+                ViewBag.Message = "Database seeded.";
             }
             else
             {
-                return "Db already seeded";
-            } 
+                ViewBag.Message = "Db already seeded.";
+            }
+
+            return View();
         }
     }
 }

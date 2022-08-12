@@ -1,5 +1,25 @@
 ﻿
 table, th, td {
-    border: 13px solid black;
+    border: 1px solid black;
     border-collapse: collapse;
+}
+
+body {
+    background-color: #c1c1c1;
+}
+
+.panel-heading {
+    font-size: 16px;
+}
+
+.panel-body {
+    border-bottom: 1px solid black;
+}
+
+.topicTitle {
+    font-size: 15px;
+}
+
+.topicPosts {
+    font-size: 12px;
 }
