@@ -1,15 +1,18 @@
 ﻿@model Core.Models.NewPostModel
 
-<h1>Create new post</h1>
+<div class="newpost">
+    <h1>Create new post</h1>
+    <br/>
 
-<form asp-controller="Forum" asp-action="NewPost" method="post">
-    <label asp-for="Title"></label>
-    <input asp-for="Title" />
-    <span asp-validation-for="Title" class="text-danger"></span>
-    <br /><br />
-    <label asp-for="Content"></label>
-    <textarea asp-for="Content"></textarea>
-    <span asp-validation-for="Content" class="text-danger"></span>
-    <input asp-for="TopicId" type="hidden" />
-    <button type="submit">Create</button>
-</form>
+    <form asp-controller="Forum" asp-action="NewPost" method="post">
+        <label asp-for="Title"></label>
+        <input asp-for="Title" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+        <br /><br />
+        <textarea asp-for="Content" rows="4" cols="70"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+        <input asp-for="TopicId" type="hidden" />
+        <br/><br/>
+        <button type="submit">Submit Post</button>
+    </form>
+</div>

@@ -6,68 +6,81 @@
 
 @model PostModel
 
-<h1>@Model.Post.Name</h1>
-<h2>Created by: @Model.User.UserName</h2>
-
-<table>
-    <tr>
-        <th>User</th>
-        <th>Comment</th>
-        <th>Action</th>
-    </tr>
-@foreach(var comment in Model.CommentModels)
+@if (Model.CommentModels.Any())
 {
-    <tr>
-        <td>@comment.CommentUser.UserName</td>
-        <td>
-            <div id="comment_show_@comment.Comment.Id" style="display:block">@comment.Comment.Content</div>
-            <div id="comment_edit_@comment.Comment.Id" style="display:none">
+    <div class="listpanel">
+        <h1>@Model.Post.Name</h1>
+        <h3>@Model.User.UserName</h3>
+        @Html.Partial("_PostPagination", Model.PaginationInfo)
+        <div class="panel panel-default">
 
-                <form asp-controller="Forum" asp-action="EditComment" method="post">
-                    <textarea name="content">@comment.Comment.Content</textarea>
-                    <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
-                    <input asp-for="EditCommentModel.PostId" type="hidden" />
-                    <input asp-for="EditCommentModel.UserId" value="@comment.CommentUser.Id" type="hidden" />
-                    <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
-                    <button type="submit">Save</button>
-                    <button type="button" onclick="cancelEdit('@comment.Comment.Id')">Cancel</button>
-                </form>
-            </div>
-            
-        </td>
-        <td>
-                @if (comment.DisplayEditDelete)
-                {
-                    <a id="editComment" href="#" onclick="editComment('@comment.Comment.Id');return false;">Edit</a>
+            @foreach (var comment in Model.CommentModels)
+            {
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            @comment.CommentUser.UserName
+                        </div>
+                        <div class="col-md-7">
+                            <div id="comment_show_@comment.Comment.Id" style="display:block">@comment.Comment.Content</div>
+                            <div id="comment_edit_@comment.Comment.Id" style="display:none">
 
-                    <a id="deleteComment" href="#" onclick="deleteComment('@comment.Comment.Id');return false;">Delete</a>
-                }
+                                <form asp-controller="Forum" asp-action="EditComment" method="post">
+                                    <textarea name="content" rows="4" cols="50">@comment.Comment.Content</textarea><br/>
+                                    <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
+                                    <input asp-for="EditCommentModel.PostId" type="hidden" />
+                                    <input asp-for="EditCommentModel.UserId" value="@comment.CommentUser.Id" type="hidden" />
+                                    <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
+                                    <button type="submit">Save</button>
+                                    <button type="button" onclick="cancelEdit('@comment.Comment.Id')">Cancel</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2">
+                            @if (comment.DisplayEditDelete)
+                            {
+                                <div class="col-md-1">
+                                    <a id="editComment" href="#" onclick="editComment('@comment.Comment.Id');return false;">Edit</a>
+                                </div>
+                                <div class="col-md-1">
+                                    <a id="deleteComment" href="#" onclick="deleteComment('@comment.Comment.Id');return false;">Delete</a>
 
-                    <div id="comment_delete_@comment.Comment.Id" style="display:none">
-                        <form asp-controller="Forum" asp-action="DeleteComment" method="post">
-                            <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
-                            <input asp-for="EditCommentModel.PostId" type="hidden" />
-                            <input asp-for="EditCommentModel.UserId" value="@comment.CommentUser.Id" type="hidden" />
-                            <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
-                            <button type="submit">Yes</button>
-                            <button type="button" onclick="cancelDelete('@comment.Comment.Id')">No</button>
-                        </form>
+                                    <div id="comment_delete_@comment.Comment.Id" style="display:none">
+                                        <form asp-controller="Forum" asp-action="DeleteComment" method="post">
+                                            <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
+                                            <input asp-for="EditCommentModel.PostId" type="hidden" />
+                                            <input asp-for="EditCommentModel.UserId" value="@comment.CommentUser.Id" type="hidden" />
+                                            <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
+                                            <button type="submit">Yes</button>
+                                            <button type="button" onclick="cancelDelete('@comment.Comment.Id')">No</button>
+                                        </form>
+                                    </div>
+                                </div>
+                              }
+                        </div>
                     </div>
-        </td>
-    </tr>        
+                </div>
+            }
+
+        </div>
+
+        @if (signinManager.IsSignedIn(User))
+        {
+            var user = await userManager.GetUserAsync(User);
+
+            @if (user.AuthAccessLevel > 0)
+            {
+                @Html.Partial("_NewComment", Model.NewCommentModel)
+            }
+        }
+
+        @Html.Partial("_PostPagination", Model.PaginationInfo)
+
+    </div>
 }
-</table>
-<br />
-
-@Html.Partial("_PostPagination", Model.PaginationInfo)
-<br />
-
-@if (signinManager.IsSignedIn(User))
+else
 {
-    var user = await userManager.GetUserAsync(User);
-
-    @if (user.AuthAccessLevel > 0)
-    {
-        @Html.Partial("_NewComment", Model.NewCommentModel)
-    }
+    <p>There are no comments to display.</p>
 }

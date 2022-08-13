@@ -6,31 +6,49 @@
 
 @model TopicModel
 
-<h1>@Model.Topic.Name</h1>
-
-<table>
-    <tr>
-        <th></th>
-        <th>Creator</th>
-    </tr>
-@foreach (var post in Model.PostModels)
+@if (Model.PostModels.Any())
 {
-    <tr>
-        <td><a asp-controller="Forum" asp-action="Post" asp-route-id="@post.Post.Id">@post.Post.Name</a></td>
-        <td>@post.User.UserName</td>
-    </tr>        
+    <div class="listpanel">
+        <div class="row">
+            <div class="col-md-10">
+                <h1>@Model.Topic.Name</h1>
+            </div>
+            <div class="col-md-2">
+                @if (signinManager.IsSignedIn(User))
+                {
+                    var user = await userManager.GetUserAsync(User);
+
+                    @if (user.AuthAccessLevel > 0)
+                    {
+                        <p><a asp-controller="Forum" asp-action="NewPost" asp-route-id="@Model.Topic.Id"><button class="btn btn-primary">New Post</button></a></p>
+                    }
+                }
+            </div>
+        </div>
+        @Html.Partial("_TopicPagination", Model.PaginationInfo)
+        <div class="panel panel-default">
+
+        @foreach (var post in Model.PostModels)
+        {
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <a asp-controller="Forum" asp-action="Post" asp-route-id="@post.Post.Id">@post.Post.Name</a>
+                    </div>
+                    <div class="col-md-2">
+                        @post.User.UserName
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+
+        @Html.Partial("_TopicPagination", Model.PaginationInfo)
+
+        
+    </div>
 }
-</table>
-<br />
-
-@Html.Partial("_TopicPagination", Model.PaginationInfo)
-
-@if (signinManager.IsSignedIn(User))
+else
 {
-    var user = await userManager.GetUserAsync(User);
-
-    @if (user.AuthAccessLevel > 0)
-    {
-        <p><a asp-controller="Forum" asp-action="NewPost" asp-route-id="@Model.Topic.Id">New Post</a></p>
-    }
+    <p>There are no posts to display.</p>
 }
