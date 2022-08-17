@@ -2,41 +2,70 @@
 
 @model CommentManagementModel
 
-<h1>Comment Management</h1>
-
-<table>
-    <tr>
-        <th>Id</th>
-        <th>User</th>
-        <th>Content</th>
-        <th>Post Id</th>
-        <th>Action</th>
-    </tr>
-@foreach (var comment in Model.CommentModels)
+@if (Model.CommentModels.Any())
 {
-    <tr>
-        <td>@comment.Comment.Id</td>
-        <td>@comment.CommentUser.UserName</td>
-        <td>@comment.Comment.Content</td>
-        <td>@comment.Comment.PostId</td>
-        <td>
-            @if (comment.DisplayEditDelete)
-            {
-                <a id="deleteCommentManagement" href="#" onclick="deleteCommentManagement('@comment.Comment.Id');return false;">Delete</a>
-            }
+    <div class="listpanel">
+        <h1>Comment Management</h1>
+        @Html.Partial("_CommentManagementPagination", Model.PaginationInfo)
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <strong>PId</strong>
+                        </div>
+                        <div class="col-md-1">
+                            <strong>CId</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>User</strong>
+                        </div>
+                        <div class="col-md-5">
+                            <strong>Content</strong>
+                        </div>
+                        <div class="col-md-2">
+                            
+                        </div>
+                    </div>
+                </div>
+                @foreach (var comment in Model.CommentModels)
+                {
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-1">
+                                @comment.Comment.PostId
+                            </div>
+                            <div class="col-md-1">
+                                @comment.Comment.Id
+                            </div>
+                            <div class="col-md-3">
+                                @comment.CommentUser.UserName
+                            </div>
+                            <div class="col-md-5">
+                                @comment.Comment.Content
+                            </div>
+                            <div class="col-md-2">
+                                <a id="deleteCommentManagement" href="#" onclick="deleteCommentManagement('@comment.Comment.Id');return false;">Delete</a>
+                                    <div id="comment_delete_management_@comment.Comment.Id" style="display:none">
+                                        <form asp-controller="ContentManagement" asp-action="DeleteCommentManagement" method="post">
+                                            <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
+                                            <input asp-for="EditCommentModel.PostId" type="hidden" />
+                                            <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
+                                            <button type="submit">Yes</button>
+                                            <button type="button" onclick="cancelDeleteCommentManagement('@comment.Comment.Id')">No</button>
+                                        </form>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+            </div>
 
-            <div id="comment_delete_management_@comment.Comment.Id" style="display:none">
-                <form asp-controller="ContentManagement" asp-action="DeleteCommentManagement" method="post">
-                    <input asp-for="EditCommentModel.CommentId" value="@comment.Comment.Id" type="hidden" />
-                    <input asp-for="EditCommentModel.PostId" type="hidden" />
-                    <input asp-for="EditCommentModel.CurrentPage" type="hidden" />
-                    <button type="submit">Yes</button>
-                    <button type="button" onclick="cancelDeleteCommentManagement('@comment.Comment.Id')">No</button>
-                </form>
-        </td>
-    </tr>
+            @Html.Partial("_CommentManagementPagination", Model.PaginationInfo)
+    
+    </div>
 }
-</table>
-<br />
-
-@Html.Partial("_CommentManagementPagination", Model.PaginationInfo)
+else
+{
+    <p>There are no comments to display.</p>
+}

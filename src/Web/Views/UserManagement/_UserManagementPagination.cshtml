@@ -1,44 +1,26 @@
 ﻿@model Core.Models.PaginationInfo
 
-<div>
-    <article>
-        <nav>
+<nav>
+    <ul class="pagination">
+        <li>
             @if (Model.Previous < 1)
             {
                 // do nothing
             } else if (Model.Previous == 1)
             {
-                <a
-                asp-controller="UserManagement"
-                asp-action="Index">
-                Previous
-                </a>
+                <a asp-controller="UserManagement" asp-action="Index">Previous</a>
             } else
             {
-                <a
-                asp-controller="UserManagement"
-                asp-action="Index"
-                asp-route-page=@Model.Previous>
-                Previous
-                </a>
+                <a asp-controller="UserManagement" asp-action="Index" asp-route-page=@Model.Previous>Previous</a>
             }
-
+        </li>
             @if (Model.TotalPages > 1)
             {
-                <a
-                asp-controller="UserManagement"
-                asp-action="Index">
-                1
-              </a>
+                <li><a asp-controller="UserManagement" asp-action="Index">1</a></li>
 
                 @for (int i = 2; i <= Model.TotalPages; i++)
                 {
-                    <a
-                    asp-controller="UserManagement"
-                    asp-action="Index"
-                    asp-route-page=@i>
-                    @i
-                    </a>
+                    <li><a asp-controller="UserManagement" asp-action="Index" asp-route-page=@i>@i</a></li>
                 }
             }
             
@@ -47,15 +29,7 @@
                 // do nothing
             } else
             {
-                <a
-                asp-controller="UserManagement"
-                asp-action="Index"
-                asp-route-page=@Model.Next>
-                Next
-            </a>
+                <li><a asp-controller="UserManagement" asp-action="Index" asp-route-page=@Model.Next>Next</a></li>
             }
-            
-
-        </nav>
-    </article>
-</div>
+    </ul>
+</nav>

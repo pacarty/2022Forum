@@ -2,23 +2,49 @@
 
 @model UserManagementModel
 
-<h1>User Management</h1>
-
-<table>
-    <tr>
-        <th>User Id</th>
-        <th>Username</th>
-        <th>Action</th>
-    </tr>
-@foreach (var user in Model.Users)
+@if (Model.Users.Any())
 {
-    <tr>
-        <td>@user.Id</td>
-        <td>@user.UserName</td>
-        <td><a asp-controller="UserManagement" asp-action="EditUser" asp-route-userId="@user.Id">Edit</a></td>
-    </tr>
-}
-</table>
-<br />
+    <div class="listpanel">
+        <h1>User Management</h1>
+        @Html.Partial("_UserManagementPagination", Model.PaginationInfo)
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>User Id</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Username</strong>
+                        </div>
+                        <div class="col-md-4">
+                            
+                        </div>
+                    </div>
+                </div>
+                @foreach (var user in Model.Users)
+                {
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                @user.Id
+                            </div>
+                            <div class="col-md-4">
+                                @user.UserName
+                            </div>
+                            <div class="col-md-4">
+                                <a asp-controller="UserManagement" asp-action="EditUser" asp-route-userId="@user.Id">Edit</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+            </div>
 
-@Html.Partial("_UserManagementPagination", Model.PaginationInfo)
+            @Html.Partial("_UserManagementPagination", Model.PaginationInfo)
+    
+    </div>
+}
+else
+{
+    <p>There are no users to display.</p>
+}

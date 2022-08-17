@@ -2,39 +2,63 @@
 
 @model PostManagementModel
 
-<h1>Post Management</h1>
-
-<table>
-    <tr>
-        <th>Id</th>
-        <th>Title</th>
-        <th>Creator</th>
-        <th>Action</th>
-    </tr>
-@foreach (var post in Model.PostModels)
+@if (Model.PostModels.Any())
 {
-    <tr>
-        <td>@post.Post.Id</td>
-        <td><a asp-controller="ContentManagement" asp-action="CommentManagement" asp-route-id="@post.Post.Id">@post.Post.Name</a></td>
-        <td>@post.User.UserName</td>
-        <td>
-            @if (post.DisplayEditDelete)
-            {
-                <a id="deletePostManagement" href="#" onclick="deletePostManagement('@post.Post.Id');return false;">Delete</a>
-            }
-
-            <div id="post_delete_management_@post.Post.Id" style="display:none">
-                <form asp-controller="ContentManagement" asp-action="DeletePostManagement" method="post">
-                     <input asp-for="EditPostModel.PostId" value="@post.Post.Id" type="hidden" />
-                     <input asp-for="EditPostModel.CurrentPage" type="hidden" />
-                    <button type="submit">Yes</button>
-                    <button type="button" onclick="cancelDeletePostManagement('@post.Post.Id')">No</button>
-                </form>
+    <div class="listpanel">
+        <h1>Post Management</h1>
+        @Html.Partial("_PostManagementPagination", Model.PaginationInfo)
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <strong>PId</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>User</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Title</strong>
+                        </div>
+                        <div class="col-md-2">
+                            
+                        </div>
+                    </div>
+                </div>
+                @foreach (var post in Model.PostModels)
+                {
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-1">
+                                @post.Post.Id
+                            </div>
+                            <div class="col-md-3">
+                                @post.User.UserName
+                            </div>
+                            <div class="col-md-5">
+                                @post.Post.Name
+                            </div>
+                            <div class="col-md-2">
+                                <a id="deletePostManagement" href="#" onclick="deletePostManagement('@post.Post.Id');return false;">Delete</a>
+                                    <div id="post_delete_management_@post.Post.Id" style="display:none">
+                                        <form asp-controller="ContentManagement" asp-action="DeletePostManagement" method="post">
+                                             <input asp-for="EditPostModel.PostId" value="@post.Post.Id" type="hidden" />
+                                             <input asp-for="EditPostModel.CurrentPage" type="hidden" />
+                                            <button type="submit">Yes</button>
+                                            <button type="button" onclick="cancelDeletePostManagement('@post.Post.Id')">No</button>
+                                        </form>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
             </div>
-        </td>
-    </tr>        
-}
-</table>
-<br />
 
-@Html.Partial("_PostManagementPagination", Model.PaginationInfo)
+            @Html.Partial("_PostManagementPagination", Model.PaginationInfo)
+    
+    </div>
+}
+else
+{
+    <p>There are no posts to display.</p>
+}
