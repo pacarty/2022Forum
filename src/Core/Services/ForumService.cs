@@ -49,10 +49,10 @@ namespace Core.Services
         {
             List<ApplicationUser> users = new List<ApplicationUser>()
             {
-                new ApplicationUser() { UserName = "boss", AuthAccessLevel = 4 },
+                new ApplicationUser() { UserName = "adminuser", AuthAccessLevel = 4 },
+                new ApplicationUser() { UserName = "demouser", AuthAccessLevel = 1 },
                 new ApplicationUser() { UserName = "patrick", AuthAccessLevel = 3 },
-                new ApplicationUser() { UserName = "dude", AuthAccessLevel = 3 },
-                new ApplicationUser() { UserName = "man", AuthAccessLevel = 1 },
+                new ApplicationUser() { UserName = "dude", AuthAccessLevel = 3 },       
                 new ApplicationUser() { UserName = "dave", AuthAccessLevel = 1 },
                 new ApplicationUser() { UserName = "john", AuthAccessLevel = 1 }
             };
