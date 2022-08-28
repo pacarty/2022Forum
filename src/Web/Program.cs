@@ -6,13 +6,28 @@ using Web.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddControllersWithViews();
 builder.Services.AddServices();
 
+/*
+ * Connection for using sqlserver
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(connectionString));
+*/
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<DataContext>(options =>
+        options.UseInMemoryDatabase("ForumDevDb"));
+}
+else
+{
+    builder.Services.AddDbContext<DataContext>(options =>
+        options.UseNpgsql(DatabaseSettings.getConnectionString()));
+}
+
+
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<DataContext>();
